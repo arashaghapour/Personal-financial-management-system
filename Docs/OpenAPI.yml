@@ -1,0 +1,1524 @@
+openapi: 3.0.3
+
+info:
+  title: Personal Finance Management API
+  description: |
+    REST API for a personal finance management system.
+
+    All protected resources are scoped to the authenticated user.
+    The user ID is obtained from the authenticated JWT and must not be
+    provided by the client.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Authentication and user identity
+  - name: Accounts
+    description: Financial account management
+  - name: Categories
+    description: Transaction category management
+  - name: Transactions
+    description: Income and expense management
+  - name: Budgets
+    description: Budget management
+  - name: Dashboard
+    description: Financial dashboard
+  - name: Reports
+    description: Financial reports
+
+paths:
+
+  # ============================================================
+  # AUTH
+  # ============================================================
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Access token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Successfully logged out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+
+  # ============================================================
+  # ACCOUNTS
+  # ============================================================
+
+  /accounts:
+    get:
+      tags: [Accounts]
+      summary: Get all accounts
+      operationId: getAccounts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user's accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Accounts]
+      summary: Create an account
+      operationId: createAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /accounts/{id}:
+    get:
+      tags: [Accounts]
+      summary: Get an account
+      operationId: getAccount
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Accounts]
+      summary: Update an account
+      operationId: updateAccount
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '200':
+          description: Account updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Accounts]
+      summary: Delete an account
+      operationId: deleteAccount
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Account deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  # ============================================================
+  # CATEGORIES
+  # ============================================================
+
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Get all categories
+      operationId: getCategories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CategoryType'
+      responses:
+        '200':
+          description: List of user's categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Categories]
+      summary: Create a category
+      operationId: createCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /categories/{id}:
+    get:
+      tags: [Categories]
+      summary: Get a category
+      operationId: getCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Categories]
+      summary: Update a category
+      operationId: updateCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryRequest'
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Categories]
+      summary: Delete a category
+      operationId: deleteCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Category deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  # ============================================================
+  # TRANSACTIONS
+  # ============================================================
+
+  /transactions:
+    get:
+      tags: [Transactions]
+      summary: Get transactions
+      operationId: getTransactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/TransactionType'
+
+        - name: accountId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+
+        - name: minAmount
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+            minimum: 0
+
+        - name: maxAmount
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+            minimum: 0
+
+        - $ref: '#/components/parameters/Page'
+
+        - $ref: '#/components/parameters/Limit'
+
+        - $ref: '#/components/parameters/Sort'
+
+      responses:
+        '200':
+          description: Paginated transaction list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTransactions'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Transactions]
+      summary: Create a transaction
+      operationId: createTransaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+      responses:
+        '201':
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /transactions/{id}:
+    get:
+      tags: [Transactions]
+      summary: Get a transaction
+      operationId: getTransaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Transactions]
+      summary: Update a transaction
+      operationId: updateTransaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTransactionRequest'
+      responses:
+        '200':
+          description: Transaction updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Transactions]
+      summary: Delete a transaction
+      operationId: deleteTransaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Transaction deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  # ============================================================
+  # BUDGETS
+  # ============================================================
+
+  /budgets:
+    get:
+      tags: [Budgets]
+      summary: Get budgets
+      operationId: getBudgets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 2000
+
+        - name: month
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: List of budgets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Budget'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Budgets]
+      summary: Create a budget
+      operationId: createBudget
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBudgetRequest'
+      responses:
+        '201':
+          description: Budget created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /budgets/{id}:
+    get:
+      tags: [Budgets]
+      summary: Get a budget
+      operationId: getBudget
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Budget
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Budgets]
+      summary: Update a budget
+      operationId: updateBudget
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBudgetRequest'
+      responses:
+        '200':
+          description: Budget updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Budgets]
+      summary: Delete a budget
+      operationId: deleteBudget
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Budget deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /budgets/{id}/progress:
+    get:
+      tags: [Budgets]
+      summary: Get budget progress
+      operationId: getBudgetProgress
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Budget progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BudgetProgress'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  # ============================================================
+  # DASHBOARD
+  # ============================================================
+
+  /dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get financial dashboard
+      operationId: getDashboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+
+  # ============================================================
+  # REPORTS
+  # ============================================================
+
+  /reports/summary:
+    get:
+      tags: [Reports]
+      summary: Get financial summary report
+      operationId: getSummaryReport
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Financial summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryReport'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /reports/expenses:
+    get:
+      tags: [Reports]
+      summary: Get expense report
+      operationId: getExpenseReport
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Expense report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseReport'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /reports/cash-flow:
+    get:
+      tags: [Reports]
+      summary: Get cash flow report
+      operationId: getCashFlowReport
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Cash flow report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashFlowReport'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+
+# ==============================================================
+# COMPONENTS
+# ==============================================================
+
+components:
+
+  # ------------------------------------------------------------
+  # SECURITY
+  # ------------------------------------------------------------
+
+  securitySchemes:
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+
+  # ------------------------------------------------------------
+  # PARAMETERS
+  # ------------------------------------------------------------
+
+  parameters:
+
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Resource ID
+      schema:
+        type: string
+        format: uuid
+
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    Sort:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        example: date:desc
+
+    StartDate:
+      name: startDate
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+
+    EndDate:
+      name: endDate
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+
+
+  # ------------------------------------------------------------
+  # SCHEMAS
+  # ------------------------------------------------------------
+
+  schemas:
+
+    # =========================
+    # USER / AUTH
+    # =========================
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        createdAt:
+          type: string
+          format: date-time
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+
+    TokenResponse:
+      type: object
+      required:
+        - accessToken
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: Access token lifetime in seconds
+
+    AuthResponse:
+      type: object
+      required:
+        - user
+        - accessToken
+        - refreshToken
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+
+
+    # =========================
+    # ACCOUNT
+    # =========================
+
+    AccountType:
+      type: string
+      enum:
+        - CASH
+        - BANK
+        - CREDIT_CARD
+        - INVESTMENT
+        - OTHER
+
+    Account:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - balance
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        type:
+          $ref: '#/components/schemas/AccountType'
+        balance:
+          type: number
+          format: double
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateAccountRequest:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        type:
+          $ref: '#/components/schemas/AccountType'
+        initialBalance:
+          type: number
+          format: double
+          default: 0
+
+    UpdateAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        type:
+          $ref: '#/components/schemas/AccountType'
+
+
+    # =========================
+    # CATEGORY
+    # =========================
+
+    CategoryType:
+      type: string
+      enum:
+        - INCOME
+        - EXPENSE
+
+    Category:
+      type: object
+      required:
+        - id
+        - name
+        - type
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        type:
+          $ref: '#/components/schemas/CategoryType'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateCategoryRequest:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        type:
+          $ref: '#/components/schemas/CategoryType'
+
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+
+    # =========================
+    # TRANSACTION
+    # =========================
+
+    TransactionType:
+      type: string
+      enum:
+        - INCOME
+        - EXPENSE
+
+    Transaction:
+      type: object
+      required:
+        - id
+        - type
+        - amount
+        - date
+        - accountId
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        amount:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+        description:
+          type: string
+          maxLength: 500
+        date:
+          type: string
+          format: date
+        accountId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTransactionRequest:
+      oneOf:
+        - $ref: '#/components/schemas/CreateIncomeRequest'
+        - $ref: '#/components/schemas/CreateExpenseRequest'
+      discriminator:
+        propertyName: type
+
+    CreateIncomeRequest:
+      type: object
+      required:
+        - type
+        - accountId
+        - categoryId
+        - amount
+        - date
+      properties:
+        type:
+          type: string
+          enum: [INCOME]
+        accountId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+        description:
+          type: string
+          maxLength: 500
+        date:
+          type: string
+          format: date
+
+    CreateExpenseRequest:
+      type: object
+      required:
+        - type
+        - accountId
+        - categoryId
+        - amount
+        - date
+      properties:
+        type:
+          type: string
+          enum: [EXPENSE]
+        accountId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+        description:
+          type: string
+          maxLength: 500
+        date:
+          type: string
+          format: date
+
+    UpdateTransactionRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+        description:
+          type: string
+          maxLength: 500
+        date:
+          type: string
+          format: date
+        accountId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+
+
+    # =========================
+    # BUDGET
+    # =========================
+
+    Budget:
+      type: object
+      required:
+        - id
+        - categoryId
+        - amount
+        - year
+        - month
+      properties:
+        id:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+        year:
+          type: integer
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateBudgetRequest:
+      type: object
+      required:
+        - categoryId
+        - amount
+        - year
+        - month
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+        year:
+          type: integer
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+
+    UpdateBudgetRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+
+    BudgetProgress:
+      type: object
+      required:
+        - budgetId
+        - budgetAmount
+        - spentAmount
+        - remainingAmount
+        - percentageUsed
+      properties:
+        budgetId:
+          type: string
+          format: uuid
+        budgetAmount:
+          type: number
+        spentAmount:
+          type: number
+        remainingAmount:
+          type: number
+        percentageUsed:
+          type: number
+        status:
+          type: string
+          enum:
+            - UNDER_BUDGET
+            - NEAR_LIMIT
+            - OVER_BUDGET
+
+
+    # =========================
+    # DASHBOARD
+    # =========================
+
+    Dashboard:
+      type: object
+      properties:
+        totalBalance:
+          type: number
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        netCashFlow:
+          type: number
+        expenseByCategory:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryAmount'
+        incomeByCategory:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryAmount'
+        recentTransactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+
+
+    CategoryAmount:
+      type: object
+      required:
+        - categoryId
+        - categoryName
+        - amount
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        amount:
+          type: number
+
+
+    # =========================
+    # REPORTS
+    # =========================
+
+    SummaryReport:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        netCashFlow:
+          type: number
+        transactionCount:
+          type: integer
+
+    ExpenseReport:
+      type: object
+      properties:
+        totalExpenses:
+          type: number
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryAmount'
+
+    CashFlowReport:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        netCashFlow:
+          type: number
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CashFlowEntry'
+
+    CashFlowEntry:
+      type: object
+      required:
+        - date
+        - income
+        - expenses
+        - net
+      properties:
+        date:
+          type: string
+          format: date
+        income:
+          type: number
+        expenses:
+          type: number
+        net:
+          type: number
+
+
+    # =========================
+    # PAGINATION
+    # =========================
+
+    PaginatedTransactions:
+      type: object
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+
+    # =========================
+    # ERROR
+    # =========================
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+
+
+  # ------------------------------------------------------------
+  # RESPONSES
+  # ------------------------------------------------------------
+
+  responses:
+
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Authentication required or token is invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found or does not belong to the authenticated user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+```
