@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "test": "vitest",
     "lint": "eslint .",
+    "type": "module",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },
