@@ -9,15 +9,15 @@
     "start": "node dist/server.js",
     "test": "vitest",
     "lint": "eslint .",
-    "type": "module",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
+    "@eslint/js": "^10.0.1",
     "dotenv": "^17.4.2",
     "eslint": "^10.10.0",
     "express": "^5.2.1"
@@ -29,7 +29,8 @@
     "prettier": "^3.9.6",
     "supertest": "^7.2.2",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2",
+    "typescript": "5.9",
+    "typescript-eslint": "^8.70.0",
     "vitest": "^5.0.0"
   }
 }
