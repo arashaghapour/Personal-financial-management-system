@@ -16,9 +16,27 @@ jobs:
     name: Backend CI
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: finance_user
+          POSTGRES_PASSWORD: finance_password
+          POSTGRES_DB: finance_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U finance_user -d finance_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
         working-directory: backend
+
+    env:
+      DATABASE_URL: postgresql://finance_user:finance_password@localhost:5432/finance_db
 
     steps:
       - name: Checkout repository
@@ -36,6 +54,9 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
 
       - name: Lint
         run: npm run lint
