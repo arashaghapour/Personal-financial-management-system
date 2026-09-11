@@ -1,11 +1,13 @@
 import express from "express";
+import apiRouter from "./routes/api.routes.js";
+import { errorMiddleware } from "./middleware/error.middleware.js";
 
 const app = express();
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-  });
-});
+app.use(express.json());
+
+app.use("/api", apiRouter);
+
+app.use(errorMiddleware);
 
 export default app;
