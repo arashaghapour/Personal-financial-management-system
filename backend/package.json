@@ -24,7 +24,8 @@
     "eslint": "^10.10.0",
     "express": "^5.2.1",
     "pg": "^8.23.0",
-    "prisma": "^7.10.0"
+    "prisma": "^7.10.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
