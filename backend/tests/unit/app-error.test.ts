@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { errorCodes } from "../src/constants/error-codes.js";
-import { AppError } from "../src/utils/app-error.js";
+import { errorCodes } from "../../src/constants/error-codes.js";
+import { AppError } from "../../src/utils/app-error.js";
 
 describe("AppError", () => {
   it("creates an application error", () => {
