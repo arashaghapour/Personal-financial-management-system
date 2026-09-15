@@ -1,9 +1,9 @@
 import express from "express";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
-import { errorCodes } from "../src/constants/error-codes.js";
-import { errorMiddleware } from "../src/middleware/error.middleware.js";
-import { AppError } from "../src/utils/app-error.js";
+import { errorCodes } from "../../src/constants/error-codes.js";
+import { errorMiddleware } from "../../src/middleware/error.middleware.js";
+import { AppError } from "../../src/utils/app-error.js";
 
 describe("error middleware", () => {
   it("returns an AppError using the standard error response", async () => {

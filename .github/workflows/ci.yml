@@ -35,9 +35,6 @@ jobs:
       run:
         working-directory: backend
 
-    env:
-      DATABASE_URL: postgresql://finance_user:finance_password@localhost:5432/finance_db
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -56,15 +53,36 @@ jobs:
         run: npx prisma generate
 
       - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://finance_user:finance_password@localhost:5432/finance_db
+        run: npx prisma migrate deploy
+
+      - name: Create test database
+        run: |
+          PGPASSWORD=finance_password psql \
+            -h localhost \
+            -U finance_user \
+            -d finance_db \
+            -c "CREATE DATABASE finance_test_db;"
+
+      - name: Run test database migrations
+        env:
+          DATABASE_URL: postgresql://finance_user:finance_password@localhost:5432/finance_test_db
         run: npx prisma migrate deploy
 
       - name: Lint
+        env:
+          DATABASE_URL: postgresql://finance_user:finance_password@localhost:5432/finance_test_db
         run: npm run lint
 
       - name: Test
+        env:
+          DATABASE_URL: postgresql://finance_user:finance_password@localhost:5432/finance_test_db
         run: npm test
 
       - name: Build
+        env:
+          DATABASE_URL: postgresql://finance_user:finance_password@localhost:5432/finance_test_db
         run: npm run build
 
   frontend:
