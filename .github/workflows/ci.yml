@@ -55,7 +55,20 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Create test database
+        run: |
+          PGPASSWORD=finance_password psql \
+            -h localhost \
+            -U finance_user \
+            -d finance_db \
+            -c "CREATE DATABASE finance_test_db;"
+
       - name: Run database migrations
+        run: npx prisma migrate deploy
+
+      - name: Run test database migrations
+        env:
+          DATABASE_URL: postgresql://finance_user:finance_password@localhost:5432/finance_test_db
         run: npx prisma migrate deploy
 
       - name: Lint
