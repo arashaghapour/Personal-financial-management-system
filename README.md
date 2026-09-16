@@ -147,6 +147,20 @@ The initial version includes:
 
 ## Future Features
 
+
+## Authentication
+
+### Password Policy
+
+- Minimum length: 8 characters
+- No uppercase requirement
+- No lowercase requirement
+- No number requirement
+- No special character requirement
+- Maximum length: not defined yet
+- Passwords are stored only as secure hashes
+
+
 Possible future features include:
 
 - Recurring transactions
