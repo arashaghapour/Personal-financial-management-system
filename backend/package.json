@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "lint": "eslint .",
     "format": "prettier . --write",
     "format:check": "prettier . --check",

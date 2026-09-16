@@ -16,8 +16,8 @@ model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   passwordHash String
-  first_name   String
-  last_name    String
+  firstName    String
+  lastName     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
