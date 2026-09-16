@@ -16,3 +16,15 @@ export type PublicUser = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type RegisterRequest = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+};
+
+export type RegisterResponse = {
+  user: PublicUser;
+};
+
