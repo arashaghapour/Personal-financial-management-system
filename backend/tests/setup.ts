@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 
 dotenv.config({
   path: ".env.test",
-  override: true,
 });
 
 const { prisma } = await import("../src/lib/prisma.js");
