@@ -16,6 +16,10 @@ jobs:
     name: Backend CI
     runs-on: ubuntu-latest
 
+    env:
+      JWT_ACCESS_SECRET: test-secret
+      ACCESS_TOKEN_EXPIRES_IN: 15m
+
     services:
       postgres:
         image: postgres:16-alpine
