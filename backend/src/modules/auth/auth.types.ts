@@ -36,5 +36,25 @@ export type LoginRequest = {
 export type LoginResponse = {
   user: PublicUser;
   accessToken: string;
+  refreshToken: string;
 };
 
+
+export type RefreshToken = {
+  id: number;
+  userId: number;
+  tokenHash: string;
+  expiresAt: Date;
+  createdAt: Date;
+  revokedAt: Date | null;
+};
+
+
+export type RefreshRequest = {
+  refreshToken: string;
+};
+
+export type RefreshResponse = {
+  accessToken: string;
+  refreshToken: string;
+};
