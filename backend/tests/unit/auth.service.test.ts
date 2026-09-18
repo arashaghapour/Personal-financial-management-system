@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { errorCodes } from "../../src/constants/error-codes.js";
+
 import * as authRepositoryModule from "../../src/modules/auth/auth.repository.js";
+
 import * as passwordHasher from "../../src/modules/auth/password-hasher.js";
+
+import * as refreshTokenUtils from "../../src/modules/auth/refresh-token.utils.js";
+
 import { register, login } from "../../src/modules/auth/auth.service.js";
+
 import type {
   LoginRequest,
   RegisterRequest,
@@ -20,9 +26,19 @@ const create = vi.spyOn(
   "create",
 );
 
+const createRefreshToken = vi.spyOn(
+  authRepositoryModule.authRepository,
+  "createRefreshToken",
+);
+
 const hashPassword = vi.spyOn(passwordHasher, "hashPassword");
 
 const verifyPassword = vi.spyOn(passwordHasher, "verifyPassword");
+
+const hashRefreshToken = vi.spyOn(
+  refreshTokenUtils,
+  "hashRefreshToken",
+);
 
 const registerData: RegisterRequest = {
   email: "  User@Example.COM  ",
@@ -128,9 +144,18 @@ describe("auth.service", () => {
   });
 
   describe("login", () => {
-    it("should login successfully", async () => {
+    it("should login successfully and return both tokens", async () => {
       findByEmail.mockResolvedValue(user);
       verifyPassword.mockResolvedValue(true);
+      hashRefreshToken.mockReturnValue("hashed-refresh-token");
+      createRefreshToken.mockResolvedValue({
+        id: 1,
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(),
+        revokedAt: null,
+      });
 
       const result = await login(loginData);
 
@@ -144,11 +169,21 @@ describe("auth.service", () => {
       });
 
       expect(result.accessToken).toBeTypeOf("string");
+      expect(result.refreshToken).toBeTypeOf("string");
     });
 
     it("should normalize the email", async () => {
       findByEmail.mockResolvedValue(user);
       verifyPassword.mockResolvedValue(true);
+      hashRefreshToken.mockReturnValue("hashed-refresh-token");
+      createRefreshToken.mockResolvedValue({
+        id: 1,
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        revokedAt: null,
+      });
 
       await login(loginData);
 
@@ -158,6 +193,15 @@ describe("auth.service", () => {
     it("should verify the password", async () => {
       findByEmail.mockResolvedValue(user);
       verifyPassword.mockResolvedValue(true);
+      hashRefreshToken.mockReturnValue("hashed-refresh-token");
+      createRefreshToken.mockResolvedValue({
+        id: 1,
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        revokedAt: null,
+      });
 
       await login(loginData);
 
@@ -165,6 +209,48 @@ describe("auth.service", () => {
         "password123",
         "hashed-password",
       );
+    });
+
+    it("should hash the refresh token", async () => {
+      findByEmail.mockResolvedValue(user);
+      verifyPassword.mockResolvedValue(true);
+      hashRefreshToken.mockReturnValue("hashed-refresh-token");
+      createRefreshToken.mockResolvedValue({
+        id: 1,
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        revokedAt: null,
+      });
+
+      await login(loginData);
+
+      expect(hashRefreshToken).toHaveBeenCalledWith(
+        expect.any(String),
+      );
+    });
+
+    it("should store the refresh token record", async () => {
+      findByEmail.mockResolvedValue(user);
+      verifyPassword.mockResolvedValue(true);
+      hashRefreshToken.mockReturnValue("hashed-refresh-token");
+      createRefreshToken.mockResolvedValue({
+        id: 1,
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        revokedAt: null,
+      });
+
+      await login(loginData);
+
+      expect(createRefreshToken).toHaveBeenCalledWith({
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt: expect.any(Date),
+      });
     });
 
     it("should throw INVALID_CREDENTIALS when user does not exist", async () => {
@@ -177,6 +263,7 @@ describe("auth.service", () => {
       });
 
       expect(verifyPassword).not.toHaveBeenCalled();
+      expect(createRefreshToken).not.toHaveBeenCalled();
     });
 
     it("should throw INVALID_CREDENTIALS when password is incorrect", async () => {
@@ -188,11 +275,22 @@ describe("auth.service", () => {
         code: errorCodes.INVALID_CREDENTIALS,
         message: "Invalid email or password",
       });
+
+      expect(createRefreshToken).not.toHaveBeenCalled();
     });
 
     it("should not return passwordHash", async () => {
       findByEmail.mockResolvedValue(user);
       verifyPassword.mockResolvedValue(true);
+      hashRefreshToken.mockReturnValue("hashed-refresh-token");
+      createRefreshToken.mockResolvedValue({
+        id: 1,
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        revokedAt: null,
+      });
 
       const result = await login(loginData);
 

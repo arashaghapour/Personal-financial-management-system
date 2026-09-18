@@ -4,6 +4,8 @@ import { jwtVerify } from "jose";
 
 import app from "../../src/app.js";
 import { env } from "../../src/config/env.js";
+import { prisma } from "../../src/lib/prisma.js";
+import { hashRefreshToken } from "../../src/modules/auth/refresh-token.utils.js";
 
 const secret = new TextEncoder().encode(env.jwtAccessSecret);
 
@@ -338,4 +340,67 @@ describe("POST /api/auth/login", () => {
     expect(payload).not.toHaveProperty("password");
     expect(payload).not.toHaveProperty("passwordHash");
   });
+
+    it("should return a refresh token", async () => {
+      await request(app)
+        .post("/api/auth/register")
+        .send({
+          email: "refresh-response@example.com",
+          password: "password123",
+          firstName: "Arash",
+          lastName: "Aghapour",
+        });
+  
+      const response = await request(app)
+        .post("/api/auth/login")
+        .send({
+          email: "refresh-response@example.com",
+          password: "password123",
+        });
+  
+      expect(response.status).toBe(200);
+      expect(response.body.refreshToken).toBeTypeOf("string");
+    });
+  
+    it("should create a refresh token record in the database", async () => {
+      const registerResponse = await request(app)
+        .post("/api/auth/register")
+        .send({
+          email: "refresh-database@example.com",
+          password: "password123",
+          firstName: "Arash",
+          lastName: "Aghapour",
+        });
+  
+      const userId = registerResponse.body.user.id;
+  
+      const loginResponse = await request(app)
+        .post("/api/auth/login")
+        .send({
+          email: "refresh-database@example.com",
+          password: "password123",
+        });
+  
+      expect(loginResponse.status).toBe(200);
+  
+      const refreshToken = loginResponse.body.refreshToken;
+  
+      const tokenHash = hashRefreshToken(refreshToken);
+  
+      const refreshTokenRecord =
+        await prisma.refreshToken.findUnique({
+          where: {
+            tokenHash,
+          },
+        });
+  
+      expect(refreshTokenRecord).not.toBeNull();
+      expect(refreshTokenRecord?.userId).toBe(userId);
+      expect(refreshTokenRecord?.tokenHash).toBe(tokenHash);
+      expect(refreshTokenRecord?.revokedAt).toBeNull();
+      expect(refreshTokenRecord?.expiresAt).toBeInstanceOf(Date);
+      expect(
+        refreshTokenRecord?.expiresAt.getTime(),
+      ).toBeGreaterThan(Date.now());
+    });
 });

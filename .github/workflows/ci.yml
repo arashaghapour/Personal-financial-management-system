@@ -16,9 +16,12 @@ jobs:
     name: Backend CI
     runs-on: ubuntu-latest
 
+     
     env:
-      JWT_ACCESS_SECRET: test-secret
+      JWT_ACCESS_SECRET: test-access-secret
       ACCESS_TOKEN_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: test-refresh-secret
+      REFRESH_TOKEN_EXPIRES_IN: 7d
 
     services:
       postgres:
