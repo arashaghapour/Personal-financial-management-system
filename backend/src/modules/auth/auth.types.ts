@@ -28,3 +28,13 @@ export type RegisterResponse = {
   user: PublicUser;
 };
 
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export type LoginResponse = {
+  user: PublicUser;
+  accessToken: string;
+};
+

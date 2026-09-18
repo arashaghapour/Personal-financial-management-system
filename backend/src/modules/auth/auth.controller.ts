@@ -1,11 +1,25 @@
 import type { Request, Response } from "express";
-import { register } from "./auth.service.js";
+
+import { login, register } from "./auth.service.js";
+import type {
+  LoginRequest,
+  RegisterRequest,
+} from "./auth.types.js";
 
 export const registerController = async (
   req: Request,
   res: Response,
 ) => {
-  const result = await register(req.body);
+  const result = await register(req.body as RegisterRequest);
 
-  res.status(201).json(result);
+  return res.status(201).json(result);
+};
+
+export const loginController = async (
+  req: Request,
+  res: Response,
+) => {
+  const result = await login(req.body as LoginRequest);
+
+  return res.status(200).json(result);
 };

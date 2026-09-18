@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { errorCodes } from "../../src/constants/error-codes.js";
 import * as authRepositoryModule from "../../src/modules/auth/auth.repository.js";
 import * as passwordHasher from "../../src/modules/auth/password-hasher.js";
-import { register } from "../../src/modules/auth/auth.service.js";
+import { register, login } from "../../src/modules/auth/auth.service.js";
 import type {
+  LoginRequest,
   RegisterRequest,
   User,
 } from "../../src/modules/auth/auth.types.js";
@@ -20,11 +22,18 @@ const create = vi.spyOn(
 
 const hashPassword = vi.spyOn(passwordHasher, "hashPassword");
 
+const verifyPassword = vi.spyOn(passwordHasher, "verifyPassword");
+
 const registerData: RegisterRequest = {
   email: "  User@Example.COM  ",
   password: "password123",
   firstName: "Arash",
   lastName: "Aghapour",
+};
+
+const loginData: LoginRequest = {
+  email: "  User@Example.COM  ",
+  password: "password123",
 };
 
 const user: User = {
@@ -113,6 +122,79 @@ describe("auth.service", () => {
       create.mockResolvedValue(user);
 
       const result = await register(registerData);
+
+      expect(result.user).not.toHaveProperty("passwordHash");
+    });
+  });
+
+  describe("login", () => {
+    it("should login successfully", async () => {
+      findByEmail.mockResolvedValue(user);
+      verifyPassword.mockResolvedValue(true);
+
+      const result = await login(loginData);
+
+      expect(result.user).toEqual({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      });
+
+      expect(result.accessToken).toBeTypeOf("string");
+    });
+
+    it("should normalize the email", async () => {
+      findByEmail.mockResolvedValue(user);
+      verifyPassword.mockResolvedValue(true);
+
+      await login(loginData);
+
+      expect(findByEmail).toHaveBeenCalledWith("user@example.com");
+    });
+
+    it("should verify the password", async () => {
+      findByEmail.mockResolvedValue(user);
+      verifyPassword.mockResolvedValue(true);
+
+      await login(loginData);
+
+      expect(verifyPassword).toHaveBeenCalledWith(
+        "password123",
+        "hashed-password",
+      );
+    });
+
+    it("should throw INVALID_CREDENTIALS when user does not exist", async () => {
+      findByEmail.mockResolvedValue(null);
+
+      await expect(login(loginData)).rejects.toMatchObject({
+        statusCode: 401,
+        code: errorCodes.INVALID_CREDENTIALS,
+        message: "Invalid email or password",
+      });
+
+      expect(verifyPassword).not.toHaveBeenCalled();
+    });
+
+    it("should throw INVALID_CREDENTIALS when password is incorrect", async () => {
+      findByEmail.mockResolvedValue(user);
+      verifyPassword.mockResolvedValue(false);
+
+      await expect(login(loginData)).rejects.toMatchObject({
+        statusCode: 401,
+        code: errorCodes.INVALID_CREDENTIALS,
+        message: "Invalid email or password",
+      });
+    });
+
+    it("should not return passwordHash", async () => {
+      findByEmail.mockResolvedValue(user);
+      verifyPassword.mockResolvedValue(true);
+
+      const result = await login(loginData);
 
       expect(result.user).not.toHaveProperty("passwordHash");
     });

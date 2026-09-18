@@ -9,6 +9,12 @@ import type {
   RegisterResponse,
 } from "./auth.types.js";
 
+import { generateAccessToken } from "../../utils/jwt.js";
+
+import type {
+  LoginRequest,
+  LoginResponse,
+} from "./auth.types.js";
 export const register = async (
   data: RegisterRequest,
 ): Promise<RegisterResponse> => {
@@ -36,5 +42,43 @@ export const register = async (
 
   return {
     user: toPublicUser(user),
+  };
+
+};
+
+
+export const login = async (
+  data: LoginRequest,
+): Promise<LoginResponse> => {
+  const email = normalizeEmail(data.email);
+
+  const user = await authRepositoryModule.authRepository.findByEmail(email);
+
+  if (!user) {
+    throw new AppError(
+      401,
+      errorCodes.INVALID_CREDENTIALS,
+      "Invalid email or password",
+    );
+  }
+
+  const passwordValid = await passwordHasher.verifyPassword(
+    data.password,
+    user.passwordHash,
+  );
+
+  if (!passwordValid) {
+    throw new AppError(
+      401,
+      errorCodes.INVALID_CREDENTIALS,
+      "Invalid email or password",
+    );
+  }
+
+  const accessToken = await generateAccessToken(user.id);
+
+  return {
+    user: toPublicUser(user),
+    accessToken,
   };
 };
