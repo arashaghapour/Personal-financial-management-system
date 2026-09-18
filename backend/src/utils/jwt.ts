@@ -1,7 +1,6 @@
 import {
   jwtVerify,
   SignJWT,
-  type JWTPayload,
 } from "jose";
 
 import { env } from "../config/env.js";
