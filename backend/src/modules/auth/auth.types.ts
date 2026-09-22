@@ -58,3 +58,14 @@ export type RefreshResponse = {
   accessToken: string;
   refreshToken: string;
 };
+
+export type AccessTokenPayload = {
+  sub: string;
+  iat?: number;
+  exp?: number;
+};
+
+
+export type AuthenticatedUser = {
+  id: string;
+};
