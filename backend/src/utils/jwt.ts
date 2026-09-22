@@ -2,10 +2,10 @@ import {
   jwtVerify,
   SignJWT,
 } from "jose";
+import crypto from "node:crypto";
 
 import { env } from "../config/env.js";
-
-import crypto from "node:crypto";
+import type { AccessTokenPayload } from "../modules/auth/auth.types.js";
 
 const accessSecret = new TextEncoder().encode(
   env.jwtAccessSecret,
@@ -41,4 +41,29 @@ export const verifyAccessToken = async (token: string) => {
 
 export const verifyRefreshToken = async (token: string) => {
   return jwtVerify(token, refreshSecret);
+};
+
+export const parseAccessTokenPayload = (
+  payload: Record<string, unknown>,
+): AccessTokenPayload => {
+  if (
+    typeof payload.sub !== "string" ||
+    payload.sub.trim() === ""
+  ) {
+    throw new Error("Invalid access token subject");
+  }
+
+  if (typeof payload.iat !== "number") {
+    throw new Error("Invalid access token issued-at time");
+  }
+
+  if (typeof payload.exp !== "number") {
+    throw new Error("Invalid access token expiration time");
+  }
+
+  return {
+    sub: payload.sub,
+    iat: payload.iat,
+    exp: payload.exp,
+  };
 };
