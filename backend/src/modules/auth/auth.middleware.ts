@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 
-import { errorCodes } from "../constants/error-codes.js";
-import { AppError } from "../utils/app-error.js";
-import { verifyAccessToken } from "../utils/jwt.js";
-import { parseAccessTokenPayload } from "../utils/jwt.js";
+import { errorCodes } from "../../constants/error-codes.js";
+import { AppError } from "../../utils/app-error.js";
+import { verifyAccessToken } from "../../utils/jwt.js";
+import { parseAccessTokenPayload } from "../../utils/jwt.js";
 
 export const authMiddleware = async (
   req: Request,
@@ -24,11 +24,7 @@ export const authMiddleware = async (
 
   const parts = authorization.trim().split(/\s+/);
 
-  if (
-    parts.length !== 2 ||
-    parts[0] !== "Bearer" ||
-    !parts[1]
-  ) {
+  if (parts.length !== 2 || parts[0] !== "Bearer" || !parts[1]) {
     return next(
       new AppError(
         401,
