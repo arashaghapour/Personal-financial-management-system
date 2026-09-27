@@ -1,9 +1,10 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 import {
   login,
   refresh,
   register,
+  logout,
 } from "./auth.service.js";
 
 import type {
@@ -37,4 +38,21 @@ export const refreshController = async (
   const result = await refresh(req.body as RefreshRequest);
 
   return res.status(200).json(result);
+};
+
+export const logoutController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const { refreshToken } = req.body;
+
+    await logout(Number(userId), refreshToken);
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
 };

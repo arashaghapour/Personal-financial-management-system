@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   hashPassword,
   verifyPassword,
-} from "../../src/modules/auth/password-hasher.js";
+} from "../../../src/modules/auth/password-hasher.js";
 
 describe("Password Hasher", () => {
   it("should hash a password", async () => {
@@ -35,10 +35,7 @@ describe("Password Hasher", () => {
   it("should reject an incorrect password", async () => {
     const passwordHash = await hashPassword("12345678");
 
-    const result = await verifyPassword(
-      "wrong-password",
-      passwordHash,
-    );
+    const result = await verifyPassword("wrong-password", passwordHash);
 
     expect(result).toBe(false);
   });

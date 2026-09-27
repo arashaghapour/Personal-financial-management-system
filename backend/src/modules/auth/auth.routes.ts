@@ -4,15 +4,19 @@ import {
   loginController,
   refreshController,
   registerController,
+  logoutController,
 } from "./auth.controller.js";
 
 import {
   loginSchema,
   refreshSchema,
   registerSchema,
+  logoutSchema,
 } from "./auth.schemas.js";
 
 import { validationMiddleware } from "../../middleware/validation.middleware.js";
+
+import { authMiddleware } from "./auth.middleware.js";
 
 const authRouter = Router();
 
@@ -32,6 +36,13 @@ authRouter.post(
   "/refresh",
   validationMiddleware(refreshSchema, "body"),
   refreshController,
+);
+
+authRouter.post(
+  "/logout",
+  authMiddleware,
+  validationMiddleware(logoutSchema, "body"),
+  logoutController,
 );
 
 export default authRouter;

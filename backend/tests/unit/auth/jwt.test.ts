@@ -6,8 +6,8 @@ import {
   generateRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
-} from "../../src/utils/jwt.js";
-import { parseAccessTokenPayload } from "../../src/utils/jwt.js";
+} from "../../../src/utils/jwt.js";
+import { parseAccessTokenPayload } from "../../../src/utils/jwt.js";
 
 describe("jwt", () => {
   describe("refresh token", () => {

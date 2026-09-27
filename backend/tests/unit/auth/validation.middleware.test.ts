@@ -1,9 +1,8 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import app from "../../src/app.js";
+import app from "../../../src/app.js";
 
 describe("validation middleware", () => {
-
   it("returns a sanitized response for an unknown error", async () => {
     const response = await request(app).get(
       "/api/validation-test/unknown-error",
@@ -18,9 +17,7 @@ describe("validation middleware", () => {
       },
     });
 
-    expect(JSON.stringify(response.body)).not.toContain(
-      "database password",
-    );
+    expect(JSON.stringify(response.body)).not.toContain("database password");
 
     expect(JSON.stringify(response.body)).not.toContain("secret");
   });
@@ -39,9 +36,7 @@ describe("validation middleware", () => {
   });
 
   it("returns an AppError with the correct status and error code", async () => {
-    const response = await request(app).get(
-      "/api/validation-test/app-error",
-    );
+    const response = await request(app).get("/api/validation-test/app-error");
 
     expect(response.status).toBe(409);
 
@@ -64,7 +59,6 @@ describe("validation middleware", () => {
     });
   });
 
-
   it("rejects an invalid body", async () => {
     const response = await request(app)
       .post("/api/validation-test/body")
@@ -80,7 +74,6 @@ describe("validation middleware", () => {
       },
     });
   });
-
 
   it("accepts valid query parameters", async () => {
     const response = await request(app)
@@ -110,8 +103,7 @@ describe("validation middleware", () => {
   });
 
   it("accepts valid route parameters", async () => {
-    const response = await request(app)
-      .get("/api/validation-test/params/123");
+    const response = await request(app).get("/api/validation-test/params/123");
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -120,8 +112,7 @@ describe("validation middleware", () => {
   });
 
   it("rejects invalid route parameters", async () => {
-    const response = await request(app)
-      .get("/api/validation-test/params/abc");
+    const response = await request(app).get("/api/validation-test/params/abc");
 
     expect(response.status).toBe(400);
 
@@ -133,6 +124,4 @@ describe("validation middleware", () => {
       },
     });
   });
-
-  
 });
