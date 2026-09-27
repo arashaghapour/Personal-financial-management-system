@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { toPublicUser } from "../../src/modules/auth/auth.mapper.js";
-import type { User } from "../../src/modules/auth/auth.types.js";
+import { toPublicUser } from "../../../src/modules/auth/auth.mapper.js";
+import type { User } from "../../../src/modules/auth/auth.types.js";
 
 describe("toPublicUser", () => {
   it("should remove passwordHash from user", () => {

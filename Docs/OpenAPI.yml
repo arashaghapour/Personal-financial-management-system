@@ -4,7 +4,6 @@ info:
   title: Personal Finance Management API
   description: |
     REST API for a personal finance management system.
-
     All protected resources are scoped to the authenticated user.
     The user ID is obtained from the authenticated JWT and must not be
     provided by the client.
@@ -91,7 +90,7 @@ paths:
   /auth/refresh:
     post:
       tags: [Auth]
-      summary: Refresh access token
+      summary: Refresh access and refresh tokens
       operationId: refreshToken
       security: []
       requestBody:
@@ -102,11 +101,13 @@ paths:
               $ref: '#/components/schemas/RefreshTokenRequest'
       responses:
         '200':
-          description: Access token refreshed
+          description: Tokens refreshed successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -117,9 +118,17 @@ paths:
       operationId: logout
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
       responses:
         '204':
           description: Successfully logged out
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -395,15 +404,13 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: uuid
+            type: integer
 
         - name: categoryId
           in: query
           required: false
           schema:
-            type: string
-            format: uuid
+            type: integer
 
         - name: startDate
           in: query
@@ -436,9 +443,7 @@ paths:
             minimum: 0
 
         - $ref: '#/components/parameters/Page'
-
         - $ref: '#/components/parameters/Limit'
-
         - $ref: '#/components/parameters/Sort'
 
       responses:
@@ -574,8 +579,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: uuid
+            type: integer
 
       responses:
         '200':
@@ -777,8 +781,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: uuid
+            type: integer
       responses:
         '200':
           description: Expense report
@@ -821,7 +824,6 @@ components:
   # ------------------------------------------------------------
 
   securitySchemes:
-
     bearerAuth:
       type: http
       scheme: bearer
@@ -840,8 +842,7 @@ components:
       required: true
       description: Resource ID
       schema:
-        type: string
-        format: uuid
+        type: integer
 
     Page:
       name: page
@@ -902,14 +903,19 @@ components:
       required:
         - id
         - email
+        - firstName
+        - lastName
         - createdAt
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
         email:
           type: string
           format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -919,6 +925,8 @@ components:
       required:
         - email
         - password
+        - firstName
+        - lastName
       properties:
         email:
           type: string
@@ -927,6 +935,12 @@ components:
           type: string
           format: password
           minLength: 8
+        firstName:
+          type: string
+          minLength: 1
+        lastName:
+          type: string
+          minLength: 1
 
     LoginRequest:
       type: object
@@ -948,13 +962,26 @@ components:
       properties:
         refreshToken:
           type: string
+          minLength: 1
+
+    LogoutRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
 
     TokenResponse:
       type: object
       required:
         - accessToken
+        - refreshToken
       properties:
         accessToken:
+          type: string
+        refreshToken:
           type: string
         tokenType:
           type: string
@@ -1006,8 +1033,7 @@ components:
         - createdAt
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
         name:
           type: string
           minLength: 1
@@ -1070,8 +1096,7 @@ components:
         - type
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
         name:
           type: string
           minLength: 1
@@ -1127,8 +1152,7 @@ components:
         - accountId
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
         type:
           $ref: '#/components/schemas/TransactionType'
         amount:
@@ -1142,11 +1166,9 @@ components:
           type: string
           format: date
         accountId:
-          type: string
-          format: uuid
+          type: integer
         categoryId:
-          type: string
-          format: uuid
+          type: integer
           nullable: true
         createdAt:
           type: string
@@ -1175,11 +1197,9 @@ components:
           type: string
           enum: [INCOME]
         accountId:
-          type: string
-          format: uuid
+          type: integer
         categoryId:
-          type: string
-          format: uuid
+          type: integer
         amount:
           type: number
           format: double
@@ -1204,11 +1224,9 @@ components:
           type: string
           enum: [EXPENSE]
         accountId:
-          type: string
-          format: uuid
+          type: integer
         categoryId:
-          type: string
-          format: uuid
+          type: integer
         amount:
           type: number
           format: double
@@ -1234,11 +1252,9 @@ components:
           type: string
           format: date
         accountId:
-          type: string
-          format: uuid
+          type: integer
         categoryId:
-          type: string
-          format: uuid
+          type: integer
 
 
     # =========================
@@ -1255,11 +1271,9 @@ components:
         - month
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
         categoryId:
-          type: string
-          format: uuid
+          type: integer
         amount:
           type: number
           format: double
@@ -1286,8 +1300,7 @@ components:
         - month
       properties:
         categoryId:
-          type: string
-          format: uuid
+          type: integer
         amount:
           type: number
           format: double
@@ -1317,8 +1330,7 @@ components:
         - percentageUsed
       properties:
         budgetId:
-          type: string
-          format: uuid
+          type: integer
         budgetAmount:
           type: number
         spentAmount:
@@ -1363,7 +1375,6 @@ components:
           items:
             $ref: '#/components/schemas/Transaction'
 
-
     CategoryAmount:
       type: object
       required:
@@ -1372,8 +1383,7 @@ components:
         - amount
       properties:
         categoryId:
-          type: string
-          format: uuid
+          type: integer
         categoryName:
           type: string
         amount:
@@ -1521,4 +1531,3 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-```

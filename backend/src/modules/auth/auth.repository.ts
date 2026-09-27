@@ -36,6 +36,10 @@ export interface AuthRepository {
   rotateRefreshToken(
     data: RotateRefreshTokenData,
   ): Promise<RefreshToken>;
+
+  findActiveRefreshToken(
+    tokenHash: string,
+  ): Promise<RefreshToken | null>;
 }
 
 export const authRepository: AuthRepository = {
@@ -83,6 +87,8 @@ export const authRepository: AuthRepository = {
       const storedToken = await tx.refreshToken.findUnique({
         where: {
           id: data.oldTokenId,
+          userId: data.userId,
+          revokedAt: null,
         },
       });
   
@@ -108,4 +114,17 @@ export const authRepository: AuthRepository = {
       });
     });
   },
+
+  async findActiveRefreshToken(tokenHash) {
+    return prisma.refreshToken.findFirst({
+      where: {
+        tokenHash,
+        revokedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+  },
+  
 };

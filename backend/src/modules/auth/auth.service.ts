@@ -146,7 +146,7 @@ export const refresh = async (
   const tokenHash = hashRefreshToken(data.refreshToken);
 
   const storedToken =
-    await authRepositoryModule.authRepository.findRefreshToken(
+    await authRepositoryModule.authRepository.findActiveRefreshToken(
       tokenHash,
     );
 
@@ -158,21 +158,6 @@ export const refresh = async (
     );
   }
 
-  if (storedToken.revokedAt !== null) {
-    throw new AppError(
-      401,
-      errorCodes.INVALID_REFRESH_TOKEN,
-      "Invalid refresh token",
-    );
-  }
-
-  if (storedToken.expiresAt <= new Date()) {
-    throw new AppError(
-      401,
-      errorCodes.INVALID_REFRESH_TOKEN,
-      "Invalid refresh token",
-    );
-  }
 
   if (storedToken.userId !== userId) {
     throw new AppError(
@@ -212,11 +197,6 @@ export const refresh = async (
   const newExpiresAt = new Date(
     newPayload.payload.exp * 1000,
   );
-  console.log({
-    sameHash: tokenHash === newTokenHash,
-    oldTokenHashLength: tokenHash.length,
-    newTokenHashLength: newTokenHash.length,
-  });
 
   await authRepositoryModule.authRepository.rotateRefreshToken({
     oldTokenId: storedToken.id,
@@ -230,3 +210,24 @@ export const refresh = async (
     refreshToken,
   };
 };
+
+export const logout = async (
+  userId: number,
+  refreshToken: string,
+): Promise<void> => {
+  const tokenHash = hashRefreshToken(refreshToken);
+
+  const session =
+    await authRepositoryModule.authRepository.findRefreshToken(
+      tokenHash,
+    );
+
+  if (!session || session.userId !== userId) {
+    return;
+  }
+
+  await authRepositoryModule.authRepository.revokeRefreshToken(
+    session.id,
+  );
+};
+

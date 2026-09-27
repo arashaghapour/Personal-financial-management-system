@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { loginSchema } from "../../src/modules/auth/auth.schemas.js";
+import { loginSchema } from "../../../src/modules/auth/auth.schemas.js";
 
 describe("loginSchema", () => {
   it("should reject missing email", () => {
@@ -49,6 +49,4 @@ describe("loginSchema", () => {
       expect(result.data.email).toBe("User@Example.COM");
     }
   });
-
-
 });
