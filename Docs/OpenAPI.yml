@@ -208,11 +208,13 @@ paths:
         - $ref: '#/components/parameters/Id'
       responses:
         '200':
-          description: Account
+          description: Account retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -256,7 +258,9 @@ paths:
         - $ref: '#/components/parameters/Id'
       responses:
         '204':
-          description: Account deleted
+          description: Account deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -843,6 +847,7 @@ components:
       description: Resource ID
       schema:
         type: integer
+        minimum: 1
 
     Page:
       name: page
@@ -1027,13 +1032,18 @@ components:
       type: object
       required:
         - id
+        - userId
         - name
         - type
         - balance
         - createdAt
+        - updatedAt
       properties:
         id:
           type: integer
+        userId:
+          type: integer
+          description: ID of the authenticated user who owns the account
         name:
           type: string
           minLength: 1
@@ -1052,6 +1062,7 @@ components:
 
     CreateAccountRequest:
       type: object
+      additionalProperties: false
       required:
         - name
         - type
@@ -1065,10 +1076,13 @@ components:
         initialBalance:
           type: number
           format: double
+          minimum: 0
           default: 0
 
     UpdateAccountRequest:
       type: object
+      additionalProperties: false
+      minProperties: 1
       properties:
         name:
           type: string
@@ -1495,6 +1509,9 @@ components:
       properties:
         error:
           type: object
+          required:
+            - code
+            - message
           properties:
             code:
               type: string

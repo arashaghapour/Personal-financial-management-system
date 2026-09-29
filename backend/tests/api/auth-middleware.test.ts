@@ -23,7 +23,7 @@ describe("auth middleware", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.userId).toBe("123");
+      expect(response.body.userId).toBe(123);
     });
 
     it("should not allow request body to override the authenticated user id", async () => {
@@ -37,7 +37,7 @@ describe("auth middleware", () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body.userId).toBe("123");
+      expect(response.body.userId).toBe(123);
     });
 
     it("should not allow query parameters to override the authenticated user id", async () => {
@@ -51,7 +51,7 @@ describe("auth middleware", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.userId).toBe("123");
+      expect(response.body.userId).toBe(123);
     });
 
     it("should not allow route parameters to override the authenticated user id", async () => {
@@ -62,7 +62,7 @@ describe("auth middleware", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.userId).toBe("123");
+      expect(response.body.userId).toBe(123);
     });
   });
 

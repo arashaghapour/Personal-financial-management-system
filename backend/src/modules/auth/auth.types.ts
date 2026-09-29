@@ -67,5 +67,5 @@ export type AccessTokenPayload = {
 
 
 export type AuthenticatedUser = {
-  id: string;
+  id: number;
 };

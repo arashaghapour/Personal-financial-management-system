@@ -40,7 +40,7 @@ describe("authentication", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(protectedResponse.status).toBe(200);
-      expect(protectedResponse.body.userId).toBe(String(userId));
+      expect(protectedResponse.body.userId).toBe(userId);
 
       const user = await prisma.user.findUnique({
         where: {

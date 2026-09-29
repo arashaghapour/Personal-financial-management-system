@@ -39,11 +39,17 @@ export const authMiddleware = async (
   try {
     const result = await verifyAccessToken(token);
     const payload = parseAccessTokenPayload(result.payload);
-
+  
+    const userId = Number(payload.sub);
+  
+    if (!Number.isInteger(userId) || userId <= 0) {
+      throw new Error("Invalid access token subject");
+    }
+  
     req.user = {
-      id: payload.sub,
+      id: userId,
     };
-
+  
     return next();
   } catch {
     return next(
