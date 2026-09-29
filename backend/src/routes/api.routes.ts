@@ -4,6 +4,7 @@ import validationTestRouter from "./validation-test.routes.js";
 import authRouter from "../modules/auth/auth.routes.js";
 import authTestRoutes from "./auth-test.routes.js";
 import testResourceRouter from "../modules/test-resources/test-resource.routes.js";
+import { accountRouter } from "../modules/account/account.routes.js";
 
 const apiRouter = Router();
 
@@ -15,4 +16,5 @@ apiRouter.use(
   "/test-resources",
   testResourceRouter,
 );
+apiRouter.use("/accounts", accountRouter);
 export default apiRouter;
