@@ -1,14 +1,9 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import request from "supertest";
 
-import app from "../../src/app.js";
-import { prisma } from "../../src/lib/prisma.js";
+import app from "../../../src/app.js";
+import { prisma } from "../../../src/lib/prisma.js";
 
 describe("Account database", () => {
   let accessToken: string;
@@ -30,12 +25,10 @@ describe("Account database", () => {
 
     userId = registerResponse.body.user.id;
 
-    const loginResponse = await request(app)
-      .post("/api/auth/login")
-      .send({
-        email: "account-database@example.com",
-        password: "Password123!",
-      });
+    const loginResponse = await request(app).post("/api/auth/login").send({
+      email: "account-database@example.com",
+      password: "Password123!",
+    });
 
     expect(loginResponse.status).toBe(200);
 

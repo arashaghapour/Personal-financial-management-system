@@ -1,13 +1,8 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import request from "supertest";
 
-import app from "../../src/app.js";
+import app from "../../../src/app.js";
 
 const validAccount = {
   name: "Main Bank",
@@ -18,23 +13,19 @@ const validAccount = {
 let accessToken: string;
 
 beforeEach(async () => {
-  const response = await request(app)
-    .post("/api/auth/register")
-    .send({
-      email: "account-validation@example.com",
-      password: "Password123!",
-      firstName: "Test",
-      lastName: "User",
-    });
+  const response = await request(app).post("/api/auth/register").send({
+    email: "account-validation@example.com",
+    password: "Password123!",
+    firstName: "Test",
+    lastName: "User",
+  });
 
   expect(response.status).toBe(201);
 
-  const loginResponse = await request(app)
-    .post("/api/auth/login")
-    .send({
-      email: "account-validation@example.com",
-      password: "Password123!",
-    });
+  const loginResponse = await request(app).post("/api/auth/login").send({
+    email: "account-validation@example.com",
+    password: "Password123!",
+  });
 
   expect(loginResponse.status).toBe(200);
 

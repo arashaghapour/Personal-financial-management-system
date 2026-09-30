@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 
-import app from "../../src/app.js";
-import { prisma } from "../../src/lib/prisma.js";
+import app from "../../../src/app.js";
+import { prisma } from "../../../src/lib/prisma.js";
 
 describe("authentication", () => {
   describe("register and login", () => {
@@ -23,12 +23,10 @@ describe("authentication", () => {
 
       const userId = registerResponse.body.user.id;
 
-      const loginResponse = await request(app)
-        .post("/api/auth/login")
-        .send({
-          email,
-          password,
-        });
+      const loginResponse = await request(app).post("/api/auth/login").send({
+        email,
+        password,
+      });
 
       expect(loginResponse.status).toBe(200);
       expect(loginResponse.body.accessToken).toBeTypeOf("string");

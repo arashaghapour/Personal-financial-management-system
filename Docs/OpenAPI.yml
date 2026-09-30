@@ -274,7 +274,7 @@ paths:
   /categories:
     get:
       tags: [Categories]
-      summary: Get all categories
+      summary: Get categories
       operationId: getCategories
       security:
         - bearerAuth: []
@@ -282,17 +282,20 @@ paths:
         - name: type
           in: query
           required: false
+          description: Filter categories by type
           schema:
             $ref: '#/components/schemas/CategoryType'
       responses:
         '200':
-          description: List of user's categories
+          description: List of authenticated user's categories
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -319,6 +322,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/CategoryAlreadyExists'
 
   /categories/{id}:
     get:
@@ -328,14 +333,16 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/CategoryId'
       responses:
         '200':
-          description: Category
+          description: Category retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -348,7 +355,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/CategoryId'
       requestBody:
         required: true
         content:
@@ -368,6 +375,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/CategoryAlreadyExists'
 
     delete:
       tags: [Categories]
@@ -376,10 +385,12 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/CategoryId'
       responses:
         '204':
-          description: Category deleted
+          description: Category deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -844,10 +855,19 @@ components:
       name: id
       in: path
       required: true
-      description: Resource ID
+      description: Numeric resource ID
       schema:
         type: integer
         minimum: 1
+
+    CategoryId:
+      name: id
+      in: path
+      required: true
+      description: Category UUID
+      schema:
+        type: string
+        format: uuid
 
     Page:
       name: page
@@ -927,6 +947,7 @@ components:
 
     RegisterRequest:
       type: object
+      additionalProperties: false
       required:
         - email
         - password
@@ -949,6 +970,7 @@ components:
 
     LoginRequest:
       type: object
+      additionalProperties: false
       required:
         - email
         - password
@@ -962,6 +984,7 @@ components:
 
     RefreshTokenRequest:
       type: object
+      additionalProperties: false
       required:
         - refreshToken
       properties:
@@ -971,6 +994,7 @@ components:
 
     LogoutRequest:
       type: object
+      additionalProperties: false
       required:
         - refreshToken
       properties:
@@ -1106,26 +1130,42 @@ components:
       type: object
       required:
         - id
+        - userId
         - name
+        - normalizedName
         - type
+        - createdAt
+        - updatedAt
       properties:
         id:
+          type: string
+          format: uuid
+        userId:
           type: integer
+          description: ID of the authenticated user who owns the category
+          readOnly: true
         name:
           type: string
           minLength: 1
           maxLength: 100
+        normalizedName:
+          type: string
+          description: Normalized category name used for uniqueness
+          readOnly: true
         type:
           $ref: '#/components/schemas/CategoryType'
         createdAt:
           type: string
           format: date-time
+          readOnly: true
         updatedAt:
           type: string
           format: date-time
+          readOnly: true
 
     CreateCategoryRequest:
       type: object
+      additionalProperties: false
       required:
         - name
         - type
@@ -1136,14 +1176,21 @@ components:
           maxLength: 100
         type:
           $ref: '#/components/schemas/CategoryType'
+      description: |
+        The authenticated user's ID is obtained from the JWT.
+        userId must not be provided by the client.
 
     UpdateCategoryRequest:
       type: object
+      additionalProperties: false
+      minProperties: 1
       properties:
         name:
           type: string
           minLength: 1
           maxLength: 100
+        type:
+          $ref: '#/components/schemas/CategoryType'
 
 
     # =========================
@@ -1515,6 +1562,13 @@ components:
           properties:
             code:
               type: string
+              enum:
+                - VALIDATION_ERROR
+                - UNAUTHORIZED
+                - INTERNAL_SERVER_ERROR
+                - ACCOUNT_NOT_FOUND
+                - CATEGORY_ALREADY_EXISTS
+                - CATEGORY_NOT_FOUND
             message:
               type: string
             details:
@@ -1529,7 +1583,7 @@ components:
   responses:
 
     BadRequest:
-      description: Invalid request
+      description: Invalid request or validation error
       content:
         application/json:
           schema:
@@ -1544,6 +1598,13 @@ components:
 
     NotFound:
       description: Resource not found or does not belong to the authenticated user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    CategoryAlreadyExists:
+      description: A category with the same normalized name and type already exists for the authenticated user
       content:
         application/json:
           schema:
