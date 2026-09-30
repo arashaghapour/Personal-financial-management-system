@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { prisma } from "../../src/lib/prisma.js";
-import { authRepository } from "../../src/modules/auth/auth.repository.js";
+import { prisma } from "../../../src/lib/prisma.js";
+import { authRepository } from "../../../src/modules/auth/auth.repository.js";
 
 describe("Auth Repository", () => {
   it("should find an existing user by email", async () => {
@@ -20,9 +20,7 @@ describe("Auth Repository", () => {
   });
 
   it("should return null when the user does not exist by email", async () => {
-    const result = await authRepository.findByEmail(
-      "not-found@example.com",
-    );
+    const result = await authRepository.findByEmail("not-found@example.com");
 
     expect(result).toBeNull();
   });
@@ -73,9 +71,7 @@ describe("Auth Repository", () => {
       lastName: "Create",
     });
 
-    const expiresAt = new Date(
-      Date.now() + 7 * 24 * 60 * 60 * 1000,
-    );
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const result = await authRepository.createRefreshToken({
       userId: user.id,
@@ -99,19 +95,15 @@ describe("Auth Repository", () => {
       lastName: "Find",
     });
 
-    const refreshToken =
-      await authRepository.createRefreshToken({
-        userId: user.id,
-        tokenHash: "find-refresh-token-hash",
-        expiresAt: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
-        ),
-      });
+    const refreshToken = await authRepository.createRefreshToken({
+      userId: user.id,
+      tokenHash: "find-refresh-token-hash",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
 
-    const result =
-      await authRepository.findRefreshToken(
-        refreshToken.tokenHash,
-      );
+    const result = await authRepository.findRefreshToken(
+      refreshToken.tokenHash,
+    );
 
     expect(result).not.toBeNull();
     expect(result?.id).toBe(refreshToken.id);
@@ -120,10 +112,9 @@ describe("Auth Repository", () => {
   });
 
   it("should return null when the refresh token does not exist", async () => {
-    const result =
-      await authRepository.findRefreshToken(
-        "not-found-refresh-token-hash",
-      );
+    const result = await authRepository.findRefreshToken(
+      "not-found-refresh-token-hash",
+    );
 
     expect(result).toBeNull();
   });
@@ -136,19 +127,13 @@ describe("Auth Repository", () => {
       lastName: "Revoke",
     });
 
-    const refreshToken =
-      await authRepository.createRefreshToken({
-        userId: user.id,
-        tokenHash: "revoke-refresh-token-hash",
-        expiresAt: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
-        ),
-      });
+    const refreshToken = await authRepository.createRefreshToken({
+      userId: user.id,
+      tokenHash: "revoke-refresh-token-hash",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
 
-    const result =
-      await authRepository.revokeRefreshToken(
-        refreshToken.id,
-      );
+    const result = await authRepository.revokeRefreshToken(refreshToken.id);
 
     expect(result.id).toBe(refreshToken.id);
     expect(result.revokedAt).toBeInstanceOf(Date);
@@ -162,14 +147,11 @@ describe("Auth Repository", () => {
       lastName: "Relation",
     });
 
-    const refreshToken =
-      await authRepository.createRefreshToken({
-        userId: user.id,
-        tokenHash: "relation-refresh-token-hash",
-        expiresAt: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
-        ),
-      });
+    const refreshToken = await authRepository.createRefreshToken({
+      userId: user.id,
+      tokenHash: "relation-refresh-token-hash",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
 
     const result = await prisma.refreshToken.findUnique({
       where: {
@@ -192,21 +174,16 @@ describe("Auth Repository", () => {
       lastName: "Expiration",
     });
 
-    const expiresAt = new Date(
-      Date.now() + 7 * 24 * 60 * 60 * 1000,
-    );
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    const result =
-      await authRepository.createRefreshToken({
-        userId: user.id,
-        tokenHash: "expiration-refresh-token-hash",
-        expiresAt,
-      });
+    const result = await authRepository.createRefreshToken({
+      userId: user.id,
+      tokenHash: "expiration-refresh-token-hash",
+      expiresAt,
+    });
 
     expect(result.expiresAt).toEqual(expiresAt);
-    expect(result.expiresAt.getTime()).toBeGreaterThan(
-      Date.now(),
-    );
+    expect(result.expiresAt.getTime()).toBeGreaterThan(Date.now());
   });
 
   it("should create a refresh token with a non-revoked state", async () => {
@@ -217,14 +194,11 @@ describe("Auth Repository", () => {
       lastName: "Active",
     });
 
-    const result =
-      await authRepository.createRefreshToken({
-        userId: user.id,
-        tokenHash: "active-refresh-token-hash",
-        expiresAt: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
-        ),
-      });
+    const result = await authRepository.createRefreshToken({
+      userId: user.id,
+      tokenHash: "active-refresh-token-hash",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
 
     expect(result.revokedAt).toBeNull();
   });
@@ -237,18 +211,13 @@ describe("Auth Repository", () => {
       lastName: "Revoked",
     });
 
-    const refreshToken =
-      await authRepository.createRefreshToken({
-        userId: user.id,
-        tokenHash: "revoked-refresh-token-hash",
-        expiresAt: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
-        ),
-      });
+    const refreshToken = await authRepository.createRefreshToken({
+      userId: user.id,
+      tokenHash: "revoked-refresh-token-hash",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
 
-    await authRepository.revokeRefreshToken(
-      refreshToken.id,
-    );
+    await authRepository.revokeRefreshToken(refreshToken.id);
 
     const result = await prisma.refreshToken.findUnique({
       where: {
@@ -259,7 +228,6 @@ describe("Auth Repository", () => {
     expect(result?.revokedAt).toBeInstanceOf(Date);
   });
 
-
   it("should rollback refresh token rotation when creating the new token fails", async () => {
     const user = await authRepository.create({
       email: "rotation-rollback@example.com",
@@ -267,31 +235,28 @@ describe("Auth Repository", () => {
       firstName: "Rotation",
       lastName: "Rollback",
     });
-  
+
     const oldToken = await authRepository.createRefreshToken({
       userId: user.id,
       tokenHash: "old-token-hash",
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
-  
+
     await expect(
       authRepository.rotateRefreshToken({
         oldTokenId: oldToken.id,
         userId: user.id,
         tokenHash: "old-token-hash",
-        expiresAt: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
-        ),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       }),
     ).rejects.toThrow();
-  
-    const oldTokenAfterFailure =
-      await prisma.refreshToken.findUnique({
-        where: {
-          id: oldToken.id,
-        },
-      });
-  
+
+    const oldTokenAfterFailure = await prisma.refreshToken.findUnique({
+      where: {
+        id: oldToken.id,
+      },
+    });
+
     expect(oldTokenAfterFailure).not.toBeNull();
     expect(oldTokenAfterFailure?.revokedAt).toBeNull();
   });

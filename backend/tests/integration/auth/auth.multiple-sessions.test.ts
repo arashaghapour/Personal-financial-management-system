@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 
-import app from "../../src/app.js";
-import { prisma } from "../../src/lib/prisma.js";
-import { hashRefreshToken } from "../../src/modules/auth/refresh-token.utils.js";
+import app from "../../../src/app.js";
+import { prisma } from "../../../src/lib/prisma.js";
+import { hashRefreshToken } from "../../../src/modules/auth/refresh-token.utils.js";
 
 describe("Multiple refresh token sessions", () => {
   it("should revoke only the logged-out session", async () => {
@@ -60,19 +60,15 @@ describe("Multiple refresh token sessions", () => {
     expect(tokenA?.revokedAt).not.toBeNull();
     expect(tokenB?.revokedAt).toBeNull();
 
-    const refreshA = await request(app)
-      .post("/api/auth/refresh")
-      .send({
-        refreshToken: refreshTokenA,
-      });
+    const refreshA = await request(app).post("/api/auth/refresh").send({
+      refreshToken: refreshTokenA,
+    });
 
     expect(refreshA.status).toBe(401);
 
-    const refreshB = await request(app)
-      .post("/api/auth/refresh")
-      .send({
-        refreshToken: refreshTokenB,
-      });
+    const refreshB = await request(app).post("/api/auth/refresh").send({
+      refreshToken: refreshTokenB,
+    });
 
     expect(refreshB.status).toBe(200);
   });
