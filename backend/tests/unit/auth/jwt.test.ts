@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { SignJWT } from "jose";
 
 import {
@@ -6,8 +7,8 @@ import {
   generateRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
+  parseAccessTokenPayload,
 } from "../../../src/utils/jwt.js";
-import { parseAccessTokenPayload } from "../../../src/utils/jwt.js";
 
 describe("jwt", () => {
   describe("refresh token", () => {
@@ -21,7 +22,9 @@ describe("jwt", () => {
     it("should verify a valid refresh token", async () => {
       const token = await generateRefreshToken(1);
 
-      await expect(verifyRefreshToken(token)).resolves.toBeDefined();
+      await expect(
+        verifyRefreshToken(token),
+      ).resolves.toBeDefined();
     });
 
     it("should contain the correct sub", async () => {
@@ -60,19 +63,19 @@ describe("jwt", () => {
 
     it("should reject a tampered refresh token", async () => {
       const token = await generateRefreshToken(1);
-    
+
       const [header, payload, signature] = token.split(".");
-    
+
       const tamperedSignature =
         (signature[0] === "a" ? "b" : "a") +
         signature.slice(1);
-    
+
       const tamperedToken = [
         header,
         payload,
         tamperedSignature,
       ].join(".");
-    
+
       await expect(
         verifyRefreshToken(tamperedToken),
       ).rejects.toThrow();
@@ -124,7 +127,9 @@ describe("jwt", () => {
     it("should verify a valid access token", async () => {
       const token = await generateAccessToken(1);
 
-      await expect(verifyAccessToken(token)).resolves.toBeDefined();
+      await expect(
+        verifyAccessToken(token),
+      ).resolves.toBeDefined();
     });
 
     it("should contain the correct sub", async () => {
@@ -164,9 +169,17 @@ describe("jwt", () => {
     it("should reject a tampered access token", async () => {
       const token = await generateAccessToken(1);
 
-      const tamperedToken =
-        token.slice(0, -1) +
-        (token.endsWith("a") ? "b" : "a");
+      const [header, payload, signature] = token.split(".");
+
+      const tamperedSignature =
+        (signature[0] === "a" ? "b" : "a") +
+        signature.slice(1);
+
+      const tamperedToken = [
+        header,
+        payload,
+        tamperedSignature,
+      ].join(".");
 
       await expect(
         verifyAccessToken(tamperedToken),
