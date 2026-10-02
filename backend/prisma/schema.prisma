@@ -23,6 +23,7 @@ model User {
   testResources TestResource[]
   accounts      Account[]
   categories    Category[]
+  transactions  Transaction[]
 }
 
 model TestResource {
@@ -68,6 +69,7 @@ model Account {
   updatedAt DateTime    @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
 
   @@index([userId])
 }
@@ -87,7 +89,36 @@ model Category {
   updatedAt      DateTime     @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
 
   @@unique([userId, normalizedName, type])
   @@index([userId])
 }
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  userId      Int
+  type        TransactionType
+  amount      Decimal         @db.Decimal(18, 2)
+  description String?
+  date        DateTime        @db.Date
+  accountId   Int
+  categoryId  String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account  @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([userId, date])
+}
+

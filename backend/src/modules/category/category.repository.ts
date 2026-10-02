@@ -1,6 +1,7 @@
 import type {
   Category,
   CategoryType,
+  Prisma,
 } from "../../generated/prisma/client.js";
 
 import { prisma } from "../../lib/prisma.js";
@@ -21,20 +22,24 @@ export type UpdateCategoryData = {
 export interface CategoryRepository {
   create(
     data: CreateCategoryData,
+    tx?: Prisma.TransactionClient,
   ): Promise<Category>;
 
   findManyByUserId(
     userId: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<Category[]>;
 
   findManyByUserIdAndType(
     userId: number,
     type: CategoryType,
+    tx?: Prisma.TransactionClient,
   ): Promise<Category[]>;
 
   findByIdAndUserId(
     id: string,
     userId: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<Category | null>;
 
   findByNormalizedNameAndTypeAndUserId(
@@ -42,23 +47,26 @@ export interface CategoryRepository {
     type: CategoryType,
     userId: number,
     excludeId?: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<Category | null>;
 
   updateByIdAndUserId(
     id: string,
     userId: number,
     data: UpdateCategoryData,
+    tx?: Prisma.TransactionClient,
   ): Promise<Category | null>;
 
   deleteByIdAndUserId(
     id: string,
     userId: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<boolean>;
 }
 
 export const categoryRepository: CategoryRepository = {
-  async create(data) {
-    return prisma.category.create({
+  async create(data, tx = prisma) {
+    return tx.category.create({
       data: {
         userId: data.userId,
         name: data.name,
@@ -68,8 +76,8 @@ export const categoryRepository: CategoryRepository = {
     });
   },
 
-  async findManyByUserId(userId) {
-    return prisma.category.findMany({
+  async findManyByUserId(userId, tx = prisma) {
+    return tx.category.findMany({
       where: {
         userId,
       },
@@ -79,8 +87,8 @@ export const categoryRepository: CategoryRepository = {
     });
   },
 
-  async findManyByUserIdAndType(userId, type) {
-    return prisma.category.findMany({
+  async findManyByUserIdAndType(userId, type, tx = prisma) {
+    return tx.category.findMany({
       where: {
         userId,
         type,
@@ -91,8 +99,8 @@ export const categoryRepository: CategoryRepository = {
     });
   },
 
-  async findByIdAndUserId(id, userId) {
-    return prisma.category.findFirst({
+  async findByIdAndUserId(id, userId, tx = prisma) {
+    return tx.category.findFirst({
       where: {
         id,
         userId,
@@ -105,19 +113,18 @@ export const categoryRepository: CategoryRepository = {
     type,
     userId,
     excludeId,
+    tx = prisma,
   ) {
-    return prisma.category.findFirst({
+    return tx.category.findFirst({
       where: {
         userId,
         normalizedName,
         type,
-        ...(excludeId !== undefined
-          ? {
-              id: {
-                not: excludeId,
-              },
-            }
-          : {}),
+        ...(excludeId !== undefined && {
+          id: {
+            not: excludeId,
+          },
+        }),
       },
     });
   },
@@ -126,8 +133,9 @@ export const categoryRepository: CategoryRepository = {
     id,
     userId,
     data,
+    tx = prisma,
   ) {
-    const result = await prisma.category.updateMany({
+    const result = await tx.category.updateMany({
       where: {
         id,
         userId,
@@ -139,7 +147,7 @@ export const categoryRepository: CategoryRepository = {
       return null;
     }
 
-    return prisma.category.findUnique({
+    return tx.category.findUnique({
       where: {
         id,
       },
@@ -149,8 +157,9 @@ export const categoryRepository: CategoryRepository = {
   async deleteByIdAndUserId(
     id,
     userId,
+    tx = prisma,
   ) {
-    const result = await prisma.category.deleteMany({
+    const result = await tx.category.deleteMany({
       where: {
         id,
         userId,

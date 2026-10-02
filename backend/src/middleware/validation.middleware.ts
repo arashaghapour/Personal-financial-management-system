@@ -1,16 +1,18 @@
 import type { NextFunction, Request, Response } from "express";
+
 import type { ZodType } from "zod";
 
 import { errorCodes } from "../constants/error-codes.js";
+
 import { AppError } from "../utils/app-error.js";
 
-type validationSource = "body" | "query" | "params";
+type ValidationSource = "body" | "query" | "params";
 
 export const validationMiddleware = (
   schema: ZodType,
-  source: validationSource,
+  source: ValidationSource,
 ) => {
-  return (req: Request, _res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req[source]);
 
     if (!result.success) {
@@ -23,6 +25,8 @@ export const validationMiddleware = (
         ),
       );
     }
+
+    res.locals[source] = result.data;
 
     next();
   };

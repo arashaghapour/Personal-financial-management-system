@@ -414,33 +414,30 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/TransactionType'
-
         - name: accountId
           in: query
           required: false
           schema:
             type: integer
-
+            minimum: 1
         - name: categoryId
           in: query
           required: false
           schema:
-            type: integer
-
+            type: string
+            format: uuid
         - name: startDate
           in: query
           required: false
           schema:
             type: string
             format: date
-
         - name: endDate
           in: query
           required: false
           schema:
             type: string
             format: date
-
         - name: minAmount
           in: query
           required: false
@@ -448,7 +445,6 @@ paths:
             type: number
             format: double
             minimum: 0
-
         - name: maxAmount
           in: query
           required: false
@@ -456,11 +452,9 @@ paths:
             type: number
             format: double
             minimum: 0
-
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Sort'
-
+        - $ref: '#/components/parameters/TransactionSort'
       responses:
         '200':
           description: Paginated transaction list
@@ -468,6 +462,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedTransactions'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -505,7 +501,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/TransactionId'
       responses:
         '200':
           description: Transaction
@@ -513,6 +509,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -525,7 +523,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/TransactionId'
       requestBody:
         required: true
         content:
@@ -553,10 +551,12 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/TransactionId'
       responses:
         '204':
           description: Transaction deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -896,6 +896,28 @@ components:
         type: string
         example: date:desc
 
+    TransactionId:
+      name: id
+      in: path
+      required: true
+      description: Transaction UUID
+      schema:
+        type: string
+        format: uuid
+
+    TransactionSort:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - date:asc
+          - date:desc
+          - amount:asc
+          - amount:desc
+        default: date:desc
+
     StartDate:
       name: startDate
       in: query
@@ -1207,13 +1229,22 @@ components:
       type: object
       required:
         - id
+        - userId
         - type
         - amount
         - date
         - accountId
+        - categoryId
+        - createdAt
+        - updatedAt
       properties:
         id:
+          type: string
+          format: uuid
+        userId:
           type: integer
+          description: ID of the authenticated user who owns the transaction
+          readOnly: true
         type:
           $ref: '#/components/schemas/TransactionType'
         amount:
@@ -1228,15 +1259,18 @@ components:
           format: date
         accountId:
           type: integer
+          minimum: 1
         categoryId:
-          type: integer
-          nullable: true
+          type: string
+          format: uuid
         createdAt:
           type: string
           format: date-time
+          readOnly: true
         updatedAt:
           type: string
           format: date-time
+          readOnly: true
 
     CreateTransactionRequest:
       oneOf:
@@ -1247,6 +1281,7 @@ components:
 
     CreateIncomeRequest:
       type: object
+      additionalProperties: false
       required:
         - type
         - accountId
@@ -1259,8 +1294,10 @@ components:
           enum: [INCOME]
         accountId:
           type: integer
+          minimum: 1
         categoryId:
-          type: integer
+          type: string
+          format: uuid
         amount:
           type: number
           format: double
@@ -1274,6 +1311,7 @@ components:
 
     CreateExpenseRequest:
       type: object
+      additionalProperties: false
       required:
         - type
         - accountId
@@ -1286,8 +1324,10 @@ components:
           enum: [EXPENSE]
         accountId:
           type: integer
+          minimum: 1
         categoryId:
-          type: integer
+          type: string
+          format: uuid
         amount:
           type: number
           format: double
@@ -1301,6 +1341,8 @@ components:
 
     UpdateTransactionRequest:
       type: object
+      additionalProperties: false
+      minProperties: 1
       properties:
         amount:
           type: number
@@ -1314,9 +1356,13 @@ components:
           format: date
         accountId:
           type: integer
+          minimum: 1
         categoryId:
-          type: integer
-
+          type: string
+          format: uuid
+      description: |
+        Transaction type cannot be changed. The authenticated user's ID is
+        obtained from the JWT and cannot be provided by the client.
 
     # =========================
     # BUDGET
@@ -1569,6 +1615,9 @@ components:
                 - ACCOUNT_NOT_FOUND
                 - CATEGORY_ALREADY_EXISTS
                 - CATEGORY_NOT_FOUND
+                - TRANSACTION_NOT_FOUND
+                - INSUFFICIENT_BALANCE
+                - CATEGORY_TYPE_MISMATCH
             message:
               type: string
             details:
