@@ -1,6 +1,7 @@
 import type {
   Account,
   AccountType,
+  Prisma,
 } from "../../generated/prisma/client.js";
 
 import { prisma } from "../../lib/prisma.js";
@@ -18,32 +19,53 @@ export type UpdateAccountData = {
 };
 
 export interface AccountRepository {
-  create(data: CreateAccountData): Promise<Account>;
+  create(
+    data: CreateAccountData,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Account>;
 
   findManyByUserId(
     userId: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<Account[]>;
 
   findByIdAndUserId(
     id: number,
     userId: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<Account | null>;
 
   updateByIdAndUserId(
     id: number,
     userId: number,
     data: UpdateAccountData,
+    tx?: Prisma.TransactionClient,
   ): Promise<Account | null>;
 
   deleteByIdAndUserId(
     id: number,
     userId: number,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Account | null>;
+
+  increaseBalance(
+    id: number,
+    userId: number,
+    amount: Prisma.Decimal,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Account | null>;
+
+  decreaseBalance(
+    id: number,
+    userId: number,
+    amount: Prisma.Decimal,
+    tx?: Prisma.TransactionClient,
   ): Promise<Account | null>;
 }
 
 export const accountRepository: AccountRepository = {
-  async create(data) {
-    return prisma.account.create({
+  async create(data, tx = prisma) {
+    return tx.account.create({
       data: {
         userId: data.userId,
         name: data.name,
@@ -53,8 +75,8 @@ export const accountRepository: AccountRepository = {
     });
   },
 
-  async findManyByUserId(userId) {
-    return prisma.account.findMany({
+  async findManyByUserId(userId, tx = prisma) {
+    return tx.account.findMany({
       where: {
         userId,
       },
@@ -64,8 +86,8 @@ export const accountRepository: AccountRepository = {
     });
   },
 
-  async findByIdAndUserId(id, userId) {
-    return prisma.account.findFirst({
+  async findByIdAndUserId(id, userId, tx = prisma) {
+    return tx.account.findFirst({
       where: {
         id,
         userId,
@@ -77,8 +99,9 @@ export const accountRepository: AccountRepository = {
     id,
     userId,
     data,
+    tx = prisma,
   ) {
-    const result = await prisma.account.updateMany({
+    const result = await tx.account.updateMany({
       where: {
         id,
         userId,
@@ -90,27 +113,87 @@ export const accountRepository: AccountRepository = {
       return null;
     }
 
-    return prisma.account.findUnique({
+    return tx.account.findUnique({
       where: {
         id,
       },
     });
   },
 
-  async deleteByIdAndUserId(id, userId) {
-    const account =
-      await prisma.account.findFirst({
-        where: {
-          id,
-          userId,
-        },
-      });
+  async deleteByIdAndUserId(id, userId, tx = prisma) {
+    const account = await tx.account.findFirst({
+      where: {
+        id,
+        userId,
+      },
+    });
 
     if (!account) {
       return null;
     }
 
-    return prisma.account.delete({
+    return tx.account.delete({
+      where: {
+        id,
+      },
+    });
+  },
+
+  async increaseBalance(
+    id,
+    userId,
+    amount,
+    tx = prisma,
+  ) {
+    const result = await tx.account.updateMany({
+      where: {
+        id,
+        userId,
+      },
+      data: {
+        balance: {
+          increment: amount,
+        },
+      },
+    });
+
+    if (result.count === 0) {
+      return null;
+    }
+
+    return tx.account.findUnique({
+      where: {
+        id,
+      },
+    });
+  },
+
+  async decreaseBalance(
+    id,
+    userId,
+    amount,
+    tx = prisma,
+  ) {
+    const result = await tx.account.updateMany({
+      where: {
+        id,
+        userId,
+        balance: {
+          gte: amount,
+        },
+      },
+      data: {
+        balance: {
+          decrement: amount,
+        },
+      },
+    });
+
+    if (result.count === 0) {
+      return null;
+    }
+
+    return tx.account.findUnique({
       where: {
         id,
       },
