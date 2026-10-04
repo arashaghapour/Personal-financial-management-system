@@ -7,6 +7,7 @@ import testResourceRouter from "../modules/test-resources/test-resource.routes.j
 import { accountRouter } from "../modules/account/account.routes.js";
 import { categoryRouter } from "../modules/category/category.routes.js";
 import transactionRouter from "../modules/transaction/transaction.routes.js";
+import budgetRouter from "../modules/budget/budget.routes.js";
 
 const apiRouter = Router();
 
@@ -21,5 +22,6 @@ apiRouter.use(
 apiRouter.use("/accounts", accountRouter);
 apiRouter.use("/categories", categoryRouter);
 apiRouter.use("/transactions", transactionRouter);
+apiRouter.use("/budgets", budgetRouter);
 
 export default apiRouter;

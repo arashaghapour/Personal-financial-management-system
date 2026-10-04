@@ -414,30 +414,35 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/TransactionType'
+
         - name: accountId
           in: query
           required: false
           schema:
             type: integer
             minimum: 1
+
         - name: categoryId
           in: query
           required: false
           schema:
             type: string
             format: uuid
+
         - name: startDate
           in: query
           required: false
           schema:
             type: string
             format: date
+
         - name: endDate
           in: query
           required: false
           schema:
             type: string
             format: date
+
         - name: minAmount
           in: query
           required: false
@@ -445,6 +450,7 @@ paths:
             type: number
             format: double
             minimum: 0
+
         - name: maxAmount
           in: query
           required: false
@@ -452,9 +458,11 @@ paths:
             type: number
             format: double
             minimum: 0
+
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/TransactionSort'
+
       responses:
         '200':
           description: Paginated transaction list
@@ -578,13 +586,15 @@ paths:
         - name: year
           in: query
           required: false
+          description: Filter budgets by year
           schema:
             type: integer
-            minimum: 2000
+            minimum: 1
 
         - name: month
           in: query
           required: false
+          description: Filter budgets by month
           schema:
             type: integer
             minimum: 1
@@ -593,18 +603,22 @@ paths:
         - name: categoryId
           in: query
           required: false
+          description: Filter budgets by expense category
           schema:
-            type: integer
+            type: string
+            format: uuid
 
       responses:
         '200':
-          description: List of budgets
+          description: List of authenticated user's budgets
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Budget'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -622,7 +636,7 @@ paths:
               $ref: '#/components/schemas/CreateBudgetRequest'
       responses:
         '201':
-          description: Budget created
+          description: Budget created successfully
           content:
             application/json:
               schema:
@@ -631,8 +645,12 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Budget already exists for this category and month
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /budgets/{id}:
     get:
@@ -642,14 +660,16 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/BudgetId'
       responses:
         '200':
-          description: Budget
+          description: Budget retrieved successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Budget'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -662,7 +682,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/BudgetId'
       requestBody:
         required: true
         content:
@@ -671,7 +691,7 @@ paths:
               $ref: '#/components/schemas/UpdateBudgetRequest'
       responses:
         '200':
-          description: Budget updated
+          description: Budget updated successfully
           content:
             application/json:
               schema:
@@ -690,10 +710,12 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/BudgetId'
       responses:
         '204':
-          description: Budget deleted
+          description: Budget deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -702,19 +724,21 @@ paths:
   /budgets/{id}/progress:
     get:
       tags: [Budgets]
-      summary: Get budget progress
+      summary: Get budget spending progress
       operationId: getBudgetProgress
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/BudgetId'
       responses:
         '200':
-          description: Budget progress
+          description: Budget spending progress
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BudgetProgress'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -865,6 +889,15 @@ components:
       in: path
       required: true
       description: Category UUID
+      schema:
+        type: string
+        format: uuid
+
+    BudgetId:
+      name: id
+      in: path
+      required: true
+      description: Budget UUID
       schema:
         type: string
         format: uuid
@@ -1364,42 +1397,78 @@ components:
         Transaction type cannot be changed. The authenticated user's ID is
         obtained from the JWT and cannot be provided by the client.
 
+
     # =========================
     # BUDGET
     # =========================
+
+    BudgetStatus:
+      type: string
+      enum:
+        - UNDER_BUDGET
+        - NEAR_LIMIT
+        - OVER_BUDGET
 
     Budget:
       type: object
       required:
         - id
+        - userId
         - categoryId
         - amount
         - year
         - month
+        - startDate
+        - createdAt
+        - updatedAt
       properties:
         id:
+          type: string
+          format: uuid
+          readOnly: true
+
+        userId:
           type: integer
+          description: ID of the authenticated user who owns the budget
+          readOnly: true
+
         categoryId:
-          type: integer
+          type: string
+          format: uuid
+          description: Expense category associated with the budget
+
         amount:
-          type: number
-          format: double
-          exclusiveMinimum: 0
+          type: string
+          description: Budget amount serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?$'
+
         year:
           type: integer
+          minimum: 1
+
         month:
           type: integer
           minimum: 1
           maximum: 12
+
+        startDate:
+          type: string
+          format: date-time
+          readOnly: true
+
         createdAt:
           type: string
           format: date-time
+          readOnly: true
+
         updatedAt:
           type: string
           format: date-time
+          readOnly: true
 
     CreateBudgetRequest:
       type: object
+      additionalProperties: false
       required:
         - categoryId
         - amount
@@ -1407,25 +1476,40 @@ components:
         - month
       properties:
         categoryId:
-          type: integer
+          type: string
+          format: uuid
+
         amount:
           type: number
           format: double
           exclusiveMinimum: 0
+
         year:
           type: integer
+          minimum: 1
+
         month:
           type: integer
           minimum: 1
           maximum: 12
 
+      description: |
+        Creates a budget for an expense category owned by the authenticated user.
+        The user ID is obtained from the JWT and must not be provided by the client.
+
     UpdateBudgetRequest:
       type: object
+      additionalProperties: false
+      required:
+        - amount
       properties:
         amount:
           type: number
           format: double
           exclusiveMinimum: 0
+      description: |
+        Updates the budget amount.
+        The category, year, month, and user cannot be changed.
 
     BudgetProgress:
       type: object
@@ -1435,23 +1519,35 @@ components:
         - spentAmount
         - remainingAmount
         - percentageUsed
+        - status
       properties:
         budgetId:
-          type: integer
+          type: string
+          format: uuid
+          description: ID of the budget
+
         budgetAmount:
           type: number
+          format: double
+          description: Original budget amount
+
         spentAmount:
           type: number
+          format: double
+          description: Total expense amount spent for the budget category during the budget period
+
         remainingAmount:
           type: number
+          format: double
+          description: Budget amount minus spent amount
+
         percentageUsed:
           type: number
+          format: double
+          description: Percentage of the budget that has been spent
+
         status:
-          type: string
-          enum:
-            - UNDER_BUDGET
-            - NEAR_LIMIT
-            - OVER_BUDGET
+          $ref: '#/components/schemas/BudgetStatus'
 
 
     # =========================
@@ -1611,18 +1707,29 @@ components:
               enum:
                 - VALIDATION_ERROR
                 - UNAUTHORIZED
+                - NOT_FOUND
                 - INTERNAL_SERVER_ERROR
+
                 - ACCOUNT_NOT_FOUND
+
                 - CATEGORY_ALREADY_EXISTS
                 - CATEGORY_NOT_FOUND
+
                 - TRANSACTION_NOT_FOUND
                 - INSUFFICIENT_BALANCE
                 - CATEGORY_TYPE_MISMATCH
+
+                - INVALID_BUDGET_CATEGORY
+                - DUPLICATE_BUDGET
+
             message:
               type: string
+
             details:
-              type: object
-              additionalProperties: true
+              type: array
+              items:
+                type: object
+                additionalProperties: true
 
 
   # ------------------------------------------------------------
