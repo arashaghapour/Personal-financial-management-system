@@ -24,6 +24,7 @@ model User {
   accounts      Account[]
   categories    Category[]
   transactions  Transaction[]
+  budgets       Budget[]
 }
 
 model TestResource {
@@ -60,16 +61,16 @@ enum AccountType {
 }
 
 model Account {
-  id        Int         @id @default(autoincrement())
-  userId    Int
-  name      String
-  type      AccountType
-  balance   Decimal
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id           Int         @id @default(autoincrement())
+  userId       Int
+  name         String
+  type         AccountType
+  balance      Decimal     @db.Decimal(18, 2)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions  Transaction[]
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
   @@index([userId])
 }
@@ -88,8 +89,9 @@ model Category {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions  Transaction[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
 
   @@unique([userId, normalizedName, type])
   @@index([userId])
@@ -122,3 +124,21 @@ model Transaction {
   @@index([userId, date])
 }
 
+model Budget {
+  id         String   @id @default(uuid())
+  userId     Int
+  categoryId String
+  amount     Decimal  @db.Decimal(18, 2)
+  year       Int
+  month      Int
+  startDate  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, year, month])
+  @@index([userId])
+  @@index([categoryId])
+}
