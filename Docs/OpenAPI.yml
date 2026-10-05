@@ -603,7 +603,6 @@ paths:
         - name: categoryId
           in: query
           required: false
-          description: Filter budgets by expense category
           schema:
             type: string
             format: uuid
@@ -760,24 +759,34 @@ paths:
         - name: startDate
           in: query
           required: false
+          description: Include transactions on or after this date
           schema:
             type: string
             format: date
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+            example: '2026-10-01'
 
         - name: endDate
           in: query
           required: false
+          description: Include transactions on or before this date
           schema:
             type: string
             format: date
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+            example: '2026-10-31'
 
       responses:
         '200':
-          description: Dashboard data
+          description: Dashboard data for the authenticated user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dashboard'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -820,7 +829,8 @@ paths:
           in: query
           required: false
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
           description: Expense report
@@ -1120,21 +1130,27 @@ components:
       properties:
         id:
           type: integer
+
         userId:
           type: integer
           description: ID of the authenticated user who owns the account
+
         name:
           type: string
           minLength: 1
           maxLength: 100
+
         type:
           $ref: '#/components/schemas/AccountType'
+
         balance:
           type: number
           format: double
+
         createdAt:
           type: string
           format: date-time
+
         updatedAt:
           type: string
           format: date-time
@@ -1195,24 +1211,30 @@ components:
         id:
           type: string
           format: uuid
+
         userId:
           type: integer
           description: ID of the authenticated user who owns the category
           readOnly: true
+
         name:
           type: string
           minLength: 1
           maxLength: 100
+
         normalizedName:
           type: string
           description: Normalized category name used for uniqueness
           readOnly: true
+
         type:
           $ref: '#/components/schemas/CategoryType'
+
         createdAt:
           type: string
           format: date-time
           readOnly: true
+
         updatedAt:
           type: string
           format: date-time
@@ -1274,32 +1296,42 @@ components:
         id:
           type: string
           format: uuid
+
         userId:
           type: integer
           description: ID of the authenticated user who owns the transaction
           readOnly: true
+
         type:
           $ref: '#/components/schemas/TransactionType'
+
         amount:
-          type: number
-          format: double
-          exclusiveMinimum: 0
+          type: string
+          description: Transaction amount serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?$'
+
         description:
           type: string
           maxLength: 500
+          nullable: true
+
         date:
           type: string
           format: date
+
         accountId:
           type: integer
           minimum: 1
+
         categoryId:
           type: string
           format: uuid
+
         createdAt:
           type: string
           format: date-time
           readOnly: true
+
         updatedAt:
           type: string
           format: date-time
@@ -1325,19 +1357,24 @@ components:
         type:
           type: string
           enum: [INCOME]
+
         accountId:
           type: integer
           minimum: 1
+
         categoryId:
           type: string
           format: uuid
+
         amount:
           type: number
           format: double
           exclusiveMinimum: 0
+
         description:
           type: string
           maxLength: 500
+
         date:
           type: string
           format: date
@@ -1355,19 +1392,24 @@ components:
         type:
           type: string
           enum: [EXPENSE]
+
         accountId:
           type: integer
           minimum: 1
+
         categoryId:
           type: string
           format: uuid
+
         amount:
           type: number
           format: double
           exclusiveMinimum: 0
+
         description:
           type: string
           maxLength: 500
+
         date:
           type: string
           format: date
@@ -1381,21 +1423,27 @@ components:
           type: number
           format: double
           exclusiveMinimum: 0
+
         description:
           type: string
           maxLength: 500
+
         date:
           type: string
           format: date
+
         accountId:
           type: integer
           minimum: 1
+
         categoryId:
           type: string
           format: uuid
+
       description: |
-        Transaction type cannot be changed. The authenticated user's ID is
-        obtained from the JWT and cannot be provided by the client.
+        Transaction type cannot be changed.
+        The authenticated user's ID is obtained from the JWT
+        and cannot be provided by the client.
 
 
     # =========================
@@ -1507,6 +1555,7 @@ components:
           type: number
           format: double
           exclusiveMinimum: 0
+
       description: |
         Updates the budget amount.
         The category, year, month, and user cannot be changed.
@@ -1556,41 +1605,71 @@ components:
 
     Dashboard:
       type: object
+      required:
+        - totalBalance
+        - totalIncome
+        - totalExpenses
+        - netCashFlow
+        - expenseByCategory
+        - incomeByCategory
+        - recentTransactions
       properties:
         totalBalance:
           type: number
+          format: double
+          description: Current total balance across all accounts owned by the authenticated user
+
         totalIncome:
           type: number
+          format: double
+          description: Total income transactions matching the requested date filters
+
         totalExpenses:
           type: number
+          format: double
+          description: Total expense transactions matching the requested date filters
+
         netCashFlow:
           type: number
+          format: double
+          description: Total income minus total expenses for the requested date range
+
         expenseByCategory:
           type: array
+          description: Expense totals grouped by category
           items:
-            $ref: '#/components/schemas/CategoryAmount'
+            $ref: '#/components/schemas/DashboardCategorySummary'
+
         incomeByCategory:
           type: array
+          description: Income totals grouped by category
           items:
-            $ref: '#/components/schemas/CategoryAmount'
+            $ref: '#/components/schemas/DashboardCategorySummary'
+
         recentTransactions:
           type: array
+          description: Up to 5 most recent transactions matching the requested date filters
           items:
             $ref: '#/components/schemas/Transaction'
 
-    CategoryAmount:
+    DashboardCategorySummary:
       type: object
       required:
         - categoryId
         - categoryName
-        - amount
+        - total
       properties:
         categoryId:
-          type: integer
+          type: string
+          format: uuid
+
         categoryName:
           type: string
-        amount:
-          type: number
+
+        total:
+          type: string
+          description: Category total serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?'
 
 
     # =========================
@@ -1651,6 +1730,23 @@ components:
         net:
           type: number
 
+    CategoryAmount:
+      type: object
+      required:
+        - categoryId
+        - categoryName
+        - amount
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+
+        categoryName:
+          type: string
+
+        amount:
+          type: number
+
 
     # =========================
     # PAGINATION
@@ -1666,6 +1762,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Transaction'
+
         pagination:
           $ref: '#/components/schemas/Pagination'
 
@@ -1709,16 +1806,12 @@ components:
                 - UNAUTHORIZED
                 - NOT_FOUND
                 - INTERNAL_SERVER_ERROR
-
                 - ACCOUNT_NOT_FOUND
-
                 - CATEGORY_ALREADY_EXISTS
                 - CATEGORY_NOT_FOUND
-
                 - TRANSACTION_NOT_FOUND
                 - INSUFFICIENT_BALANCE
                 - CATEGORY_TYPE_MISMATCH
-
                 - INVALID_BUDGET_CATEGORY
                 - DUPLICATE_BUDGET
 
