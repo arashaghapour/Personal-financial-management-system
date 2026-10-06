@@ -802,18 +802,25 @@ paths:
       operationId: getSummaryReport
       security:
         - bearerAuth: []
+
       parameters:
         - $ref: '#/components/parameters/StartDate'
         - $ref: '#/components/parameters/EndDate'
+
       responses:
         '200':
-          description: Financial summary
+          description: Financial summary report for the authenticated user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SummaryReport'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
         '401':
           $ref: '#/components/responses/Unauthorized'
+
 
   /reports/expenses:
     get:
@@ -822,24 +829,36 @@ paths:
       operationId: getExpenseReport
       security:
         - bearerAuth: []
+
       parameters:
         - $ref: '#/components/parameters/StartDate'
         - $ref: '#/components/parameters/EndDate'
+
         - name: categoryId
           in: query
           required: false
+          description: Filter expenses by an expense category owned by the authenticated user
           schema:
             type: string
             format: uuid
+
       responses:
         '200':
-          description: Expense report
+          description: Expense report for the authenticated user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExpenseReport'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 
   /reports/cash-flow:
     get:
@@ -848,19 +867,24 @@ paths:
       operationId: getCashFlowReport
       security:
         - bearerAuth: []
+
       parameters:
         - $ref: '#/components/parameters/StartDate'
         - $ref: '#/components/parameters/EndDate'
+
       responses:
         '200':
-          description: Cash flow report
+          description: Cash flow report for the authenticated user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CashFlowReport'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
         '401':
           $ref: '#/components/responses/Unauthorized'
-
 
 # ==============================================================
 # COMPONENTS
@@ -964,18 +988,24 @@ components:
     StartDate:
       name: startDate
       in: query
-      required: true
+      required: false
+      description: Include transactions on or after this date
       schema:
         type: string
         format: date
+        pattern: '^\d{4}-\d{2}-\d{2}$'
+        example: '2026-10-01'
 
     EndDate:
       name: endDate
       in: query
-      required: true
+      required: false
+      description: Include transactions on or before this date
       schema:
         type: string
         format: date
+        pattern: '^\d{4}-\d{2}-\d{2}$'
+        example: '2026-10-31'
 
 
   # ------------------------------------------------------------
@@ -1678,64 +1708,74 @@ components:
 
     SummaryReport:
       type: object
+      required:
+        - totalIncome
+        - totalExpenses
+        - netCashFlow
+        - transactionCount
+        - incomeTransactionCount
+        - expenseTransactionCount
       properties:
         totalIncome:
-          type: number
+          type: string
+          description: Total income serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?$'
+          example: '5000'
+
         totalExpenses:
-          type: number
+          type: string
+          description: Total expenses serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?$'
+          example: '1500'
+
         netCashFlow:
-          type: number
+          type: string
+          description: Total income minus total expenses
+          pattern: '^-?\d+(\.\d+)?$'
+          example: '3500'
+
         transactionCount:
           type: integer
+          minimum: 0
+          description: Total number of income and expense transactions
+
+        incomeTransactionCount:
+          type: integer
+          minimum: 0
+          description: Number of income transactions
+
+        expenseTransactionCount:
+          type: integer
+          minimum: 0
+          description: Number of expense transactions
+
 
     ExpenseReport:
       type: object
+      required:
+        - totalExpenses
+        - categories
       properties:
         totalExpenses:
-          type: number
+          type: string
+          description: Total expense amount serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?$'
+          example: '1000'
+
         categories:
           type: array
+          description: Expense totals grouped by category and sorted by amount descending
           items:
-            $ref: '#/components/schemas/CategoryAmount'
+            $ref: '#/components/schemas/ExpenseCategorySummary'
 
-    CashFlowReport:
-      type: object
-      properties:
-        totalIncome:
-          type: number
-        totalExpenses:
-          type: number
-        netCashFlow:
-          type: number
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/CashFlowEntry'
 
-    CashFlowEntry:
-      type: object
-      required:
-        - date
-        - income
-        - expenses
-        - net
-      properties:
-        date:
-          type: string
-          format: date
-        income:
-          type: number
-        expenses:
-          type: number
-        net:
-          type: number
-
-    CategoryAmount:
+    ExpenseCategorySummary:
       type: object
       required:
         - categoryId
         - categoryName
         - amount
+        - transactionCount
       properties:
         categoryId:
           type: string
@@ -1745,7 +1785,73 @@ components:
           type: string
 
         amount:
-          type: number
+          type: string
+          description: Category expense amount serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?$'
+          example: '800'
+
+        transactionCount:
+          type: integer
+          minimum: 0
+          description: Number of expense transactions in this category
+
+
+    CashFlowReport:
+      type: object
+      required:
+        - startDate
+        - endDate
+        - data
+      properties:
+        startDate:
+          type: string
+          format: date
+          description: Start of the requested or returned date range
+          example: '2026-10-01'
+
+        endDate:
+          type: string
+          format: date
+          description: End of the requested or returned date range
+          example: '2026-10-02'
+
+        data:
+          type: array
+          description: Cash flow grouped by transaction date. Dates without transactions are not included.
+          items:
+            $ref: '#/components/schemas/CashFlowEntry'
+
+
+    CashFlowEntry:
+      type: object
+      required:
+        - date
+        - income
+        - expenses
+        - netCashFlow
+      properties:
+        date:
+          type: string
+          format: date
+          example: '2026-10-01'
+
+        income:
+          type: string
+          description: Total income for the date serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?$'
+          example: '1000'
+
+        expenses:
+          type: string
+          description: Total expenses for the date serialized from Prisma Decimal
+          pattern: '^\d+(\.\d+)?$'
+          example: '200'
+
+        netCashFlow:
+          type: string
+          description: Income minus expenses for the date
+          pattern: '^-?\d+(\.\d+)?$'
+          example: '800'
 
 
     # =========================

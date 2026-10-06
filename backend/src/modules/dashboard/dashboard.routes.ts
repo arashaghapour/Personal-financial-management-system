@@ -8,7 +8,7 @@ import { dashboardController } from "./dashboard.controller.js";
 export const dashboardRouter = Router();
 
 dashboardRouter.get(
-  "/dashboard",
+  "/",
   authMiddleware,
   validationMiddleware(dashboardQuerySchema, "query"),
   dashboardController,

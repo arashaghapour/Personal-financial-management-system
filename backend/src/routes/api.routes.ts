@@ -9,6 +9,7 @@ import { categoryRouter } from "../modules/category/category.routes.js";
 import transactionRouter from "../modules/transaction/transaction.routes.js";
 import budgetRouter from "../modules/budget/budget.routes.js";
 import { dashboardRouter } from "../modules/dashboard/dashboard.routes.js";
+import reportRouter from "../modules/reports/reports.routes.js";
 
 const apiRouter = Router();
 
@@ -24,6 +25,7 @@ apiRouter.use("/accounts", accountRouter);
 apiRouter.use("/categories", categoryRouter);
 apiRouter.use("/transactions", transactionRouter);
 apiRouter.use("/budgets", budgetRouter);
-apiRouter.use(dashboardRouter);
+apiRouter.use("/dashboard", dashboardRouter);
+apiRouter.use("/reports", reportRouter);
 
 export default apiRouter;
