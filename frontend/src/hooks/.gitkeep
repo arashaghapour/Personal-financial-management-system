@@ -1,0 +1,4 @@
+# Shared hooks
+
+Reusable React hooks shared across features live here. Intentionally empty until
+a hook is needed by more than one place.

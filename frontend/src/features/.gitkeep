@@ -1,0 +1,5 @@
+# Feature modules
+
+Feature-specific code lives here (for example auth, accounts, transactions). Each
+feature owns its components, hooks, and API calls. This folder is intentionally
+empty until the first feature is implemented.

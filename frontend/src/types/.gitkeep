@@ -1,0 +1,4 @@
+# Shared types
+
+Shared TypeScript types and interfaces live here. Intentionally empty until a
+type is shared across features.

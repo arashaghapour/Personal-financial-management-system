@@ -1,0 +1,167 @@
+/*
+ * Global styles: design tokens, base typography, focus indicators, and
+ * accessibility utilities. Component styles live in layout.css and ui.css.
+ */
+
+:root {
+  /* ---- Color tokens ---- */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft: rgba(37, 99, 235, 0.1);
+  --color-on-primary: #ffffff;
+  --color-heading: #0f172a;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-danger-soft: rgba(220, 38, 38, 0.08);
+
+  /* ---- Typography tokens ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.375rem;
+  --line-height-base: 1.6;
+
+  /* ---- Spacing scale (4px base) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* ---- Border tokens ---- */
+  --border-width: 1px;
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-full: 999px;
+
+  /* ---- Layout tokens ---- */
+  --page-max-width: 1120px;
+  --content-max-width: 720px;
+  --header-height: 60px;
+
+  /* ---- Elevation tokens ---- */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+  /* Only a light theme is supported for now. */
+  color-scheme: light;
+}
+
+/* ---- Base reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 var(--space-4);
+  color: var(--color-heading);
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: var(--font-size-xl);
+}
+
+h2 {
+  font-size: var(--font-size-lg);
+}
+
+p {
+  margin: 0 0 var(--space-4);
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---- Consistent keyboard focus indicator ---- */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ---- Accessibility utilities ---- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: var(--space-2);
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--border-radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  transform: translateY(-200%);
+  transition: transform 0.15s ease-in-out;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  text-decoration: none;
+}
