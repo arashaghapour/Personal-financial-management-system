@@ -1,0 +1,154 @@
+/*
+ * Shared application layout styles: header, navigation, and main content area.
+ * Responsive rules keep the layout usable on desktop and mobile widths.
+ */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+/* ---- Header ---- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: var(--page-max-width);
+  min-height: var(--header-height);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.app-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.app-logo:hover {
+  text-decoration: none;
+}
+
+.app-logo-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+/* ---- Navigation ---- */
+.app-nav {
+  margin-left: auto;
+}
+
+.app-nav-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  list-style: none;
+}
+
+.app-nav-link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.app-nav-link:hover {
+  color: var(--color-heading);
+  background: var(--color-primary-soft);
+  text-decoration: none;
+}
+
+.app-nav-link.is-active {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* ---- Mobile menu toggle ---- */
+.app-nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  padding: var(--space-2);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.app-nav-toggle-bar {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-text);
+}
+
+/* ---- Main content area ---- */
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+/* ---- Responsive rules ---- */
+@media (max-width: 768px) {
+  .app-nav-toggle {
+    display: inline-flex;
+  }
+
+  .app-nav {
+    display: none;
+  }
+
+  .app-nav.is-open {
+    display: block;
+    position: absolute;
+    inset: var(--header-height) 0 auto 0;
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border-bottom: var(--border-width) solid var(--color-border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .app-nav.is-open .app-nav-list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+  }
+
+  .app-nav-link {
+    padding: var(--space-3);
+  }
+
+  .app-main {
+    padding: var(--space-6) var(--space-4);
+  }
+}
