@@ -15,17 +15,19 @@
   --color-bg: #f8fafc;
   --color-surface: #ffffff;
   --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
   --color-success: #16a34a;
   --color-danger: #dc2626;
   --color-danger-soft: rgba(220, 38, 38, 0.08);
 
   /* ---- Typography tokens ---- */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
-    sans-serif;
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.375rem;
+  --font-size-2xl: 2rem;
   --line-height-base: 1.6;
 
   /* ---- Spacing scale (4px base) ---- */
@@ -44,6 +46,7 @@
   --border-radius-sm: 6px;
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
+  --border-radius-xl: 18px;
   --border-radius-full: 999px;
 
   /* ---- Layout tokens ---- */
@@ -54,6 +57,7 @@
   /* ---- Elevation tokens ---- */
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 24px 64px rgba(15, 23, 42, 0.12);
 
   /* Only a light theme is supported for now. */
   color-scheme: light;

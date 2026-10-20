@@ -1,11 +1,16 @@
 import { RouterProvider } from 'react-router-dom'
 
 import { router } from './router'
+import { AuthProvider } from '../features/auth/AuthProvider'
 
 /**
- * Application-wide providers. Additional providers (theme, data fetching,
- * authentication context, ...) are added here as they become necessary.
+ * Application-wide providers. AuthProvider wraps the router so route guards
+ * can read the authentication state.
  */
 export function Providers() {
-  return <RouterProvider router={router} />
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  )
 }

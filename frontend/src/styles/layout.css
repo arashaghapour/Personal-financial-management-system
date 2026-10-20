@@ -86,6 +86,19 @@
   background: var(--color-primary-soft);
 }
 
+/* ---- Authenticated header actions ---- */
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-header-user {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 /* ---- Mobile menu toggle ---- */
 .app-nav-toggle {
   display: none;

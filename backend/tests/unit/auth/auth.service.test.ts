@@ -11,6 +11,7 @@ import * as refreshTokenUtils from "../../../src/modules/auth/refresh-token.util
 import * as jwt from "../../../src/utils/jwt.js";
 
 import {
+  getCurrentUser,
   register,
   login,
   refresh,
@@ -674,6 +675,51 @@ describe("auth.service", () => {
       expect(
         revokeRefreshToken,
       ).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe("getCurrentUser", () => {
+    it("should return the public user when it exists", async () => {
+      findById.mockResolvedValue(user);
+
+      const result = await getCurrentUser(user.id);
+
+      expect(result).toEqual({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      });
+    });
+
+    it("should look up the user by id", async () => {
+      findById.mockResolvedValue(user);
+
+      await getCurrentUser(user.id);
+
+      expect(findById).toHaveBeenCalledWith(user.id);
+    });
+
+    it("should not return passwordHash", async () => {
+      findById.mockResolvedValue(user);
+
+      const result = await getCurrentUser(user.id);
+
+      expect(result).not.toHaveProperty("passwordHash");
+    });
+
+    it("should throw NOT_FOUND when the user does not exist", async () => {
+      findById.mockResolvedValue(null);
+
+      await expect(
+        getCurrentUser(user.id),
+      ).rejects.toMatchObject({
+        statusCode: 404,
+        code: errorCodes.NOT_FOUND,
+        message: "User not found",
+      });
     });
   });
 });

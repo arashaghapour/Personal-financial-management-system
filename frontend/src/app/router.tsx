@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router-dom'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import ProtectedRoute from './ProtectedRoute'
+import PublicOnlyRoute from './PublicOnlyRoute'
 import AppLayout from '../components/layout/AppLayout'
 import DashboardPage from '../pages/DashboardPage'
 import LoginPage from '../pages/LoginPage'
@@ -13,9 +14,9 @@ import RegisterPage from '../pages/RegisterPage'
  *
  * Current routes:
  * - /            redirects to /dashboard
- * - /dashboard   initial dashboard placeholder (protected route foundation)
- * - /login       placeholder for future authentication
- * - /register    placeholder for future authentication
+ * - /dashboard   initial dashboard placeholder (protected route)
+ * - /login       authentication page (public only)
+ * - /register    registration page (public only)
  * - *            not-found page for unmatched routes
  */
 export const routes: RouteObject[] = [
@@ -38,11 +39,19 @@ export const routes: RouteObject[] = [
   },
   {
     path: 'login',
-    element: <LoginPage />,
+    element: (
+      <PublicOnlyRoute>
+        <LoginPage />
+      </PublicOnlyRoute>
+    ),
   },
   {
     path: 'register',
-    element: <RegisterPage />,
+    element: (
+      <PublicOnlyRoute>
+        <RegisterPage />
+      </PublicOnlyRoute>
+    ),
   },
 ]
 

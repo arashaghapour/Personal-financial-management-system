@@ -1,59 +1,84 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter, useRoutes } from 'react-router-dom'
+import { describe, it, expect } from "vitest";
+import { screen } from "@testing-library/react";
+import { MemoryRouter, useRoutes } from "react-router-dom";
 
-import { routes } from './router'
+import { routes } from "./router";
 
-function renderRoutes(path: string) {
-  function RoutesProbe() {
-    return useRoutes(routes)
-  }
+import {
+  authenticated,
+  renderWithAuth,
+  type AuthStatus,
+} from "../test/auth-mock";
 
-  return render(
+function RoutesProbe() {
+  return useRoutes(routes);
+}
+
+function renderRoutes(path: string, status: AuthStatus) {
+  return renderWithAuth(
     <MemoryRouter initialEntries={[path]}>
       <RoutesProbe />
     </MemoryRouter>,
-  )
+    status === "authenticated"
+      ? authenticated()
+      : { status, user: null },
+  );
 }
 
-describe('router configuration', () => {
-  it('redirects the root route to the dashboard', async () => {
-    renderRoutes('/')
+describe("router configuration", () => {
+  it("redirects the root route to the dashboard", async () => {
+    renderRoutes("/", "authenticated");
 
     expect(
-      await screen.findByRole('heading', { name: 'Dashboard', level: 1 }),
-    ).toBeInTheDocument()
-  })
+      await screen.findByRole("heading", { name: "Dashboard", level: 1 }),
+    ).toBeInTheDocument();
+  });
 
-  it('renders the dashboard page at /dashboard', () => {
-    renderRoutes('/dashboard')
-
-    expect(
-      screen.getByRole('heading', { name: 'Dashboard', level: 1 }),
-    ).toBeInTheDocument()
-  })
-
-  it('renders the login placeholder at /login', () => {
-    renderRoutes('/login')
+  it("renders the dashboard page at /dashboard", () => {
+    renderRoutes("/dashboard", "authenticated");
 
     expect(
-      screen.getByRole('heading', { name: 'Sign in', level: 1 }),
-    ).toBeInTheDocument()
-  })
+      screen.getByRole("heading", { name: "Dashboard", level: 1 }),
+    ).toBeInTheDocument();
+  });
 
-  it('renders the register placeholder at /register', () => {
-    renderRoutes('/register')
-
-    expect(
-      screen.getByRole('heading', { name: 'Create account', level: 1 }),
-    ).toBeInTheDocument()
-  })
-
-  it('renders the not-found page for unknown routes', () => {
-    renderRoutes('/unknown-route')
+  it("renders the login page at /login", () => {
+    renderRoutes("/login", "unauthenticated");
 
     expect(
-      screen.getByRole('heading', { name: 'Page not found', level: 1 }),
-    ).toBeInTheDocument()
-  })
-})
+      screen.getByRole("heading", { name: "Sign in", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the register page at /register", () => {
+    renderRoutes("/register", "unauthenticated");
+
+    expect(
+      screen.getByRole("heading", { name: "Create account", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the not-found page for unknown routes", () => {
+    renderRoutes("/unknown-route", "unauthenticated");
+
+    expect(
+      screen.getByRole("heading", { name: "Page not found", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("redirects unauthenticated users away from the dashboard", () => {
+    renderRoutes("/dashboard", "unauthenticated");
+
+    expect(
+      screen.getByRole("heading", { name: "Sign in", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("redirects authenticated users away from the login page", () => {
+    renderRoutes("/login", "authenticated");
+
+    expect(
+      screen.getByRole("heading", { name: "Dashboard", level: 1 }),
+    ).toBeInTheDocument();
+  });
+});

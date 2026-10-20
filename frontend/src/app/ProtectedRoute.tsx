@@ -1,22 +1,34 @@
 import type { ReactNode } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
+
+import { useAuth } from '../features/auth/auth-context'
+import { LoadingIndicator } from '../components/ui/LoadingIndicator'
 
 type ProtectedRouteProps = {
   children: ReactNode
 }
 
 /**
- * Foundation for routes that will require an authenticated user.
+ * Route guard for authenticated pages.
  *
- * Authentication and authorization are intentionally NOT implemented yet, so
- * this placeholder renders its children unconditionally. This keeps the
- * initial placeholder routes reachable while the app shell is built.
+ * While the session is being restored a loading indicator is shown.
+ * Unauthenticated users are redirected to /login, preserving the intended
+ * destination so login can return them to it.
  *
- * NOTE: This component is not a security boundary. Protected data must always
- * be enforced by the backend, which remains the authoritative source for
- * authentication and authorization.
+ * NOTE: This is not a security boundary. The backend remains authoritative
+ * for authentication and authorization.
  */
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  // TODO(auth): render children only when an authenticated user exists once
-  // authentication is implemented, and redirect to /login otherwise.
+  const { status } = useAuth()
+  const location = useLocation()
+
+  if (status === 'loading') {
+    return <LoadingIndicator label="Restoring your session…" />
+  }
+
+  if (status === 'unauthenticated') {
+    return <Navigate to="/login" replace state={{ from: location }} />
+  }
+
   return <>{children}</>
 }
