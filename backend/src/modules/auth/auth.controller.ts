@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
 import {
+  getCurrentUser,
   login,
   refresh,
   register,
@@ -55,4 +56,13 @@ export const logoutController = async (
   } catch (error) {
     next(error);
   }
+};
+
+export const meController = async (
+  req: Request,
+  res: Response,
+) => {
+  const result = await getCurrentUser(req.user!.id);
+
+  return res.status(200).json(result);
 };

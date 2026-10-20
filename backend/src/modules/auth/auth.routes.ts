@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   loginController,
+  meController,
   refreshController,
   registerController,
   logoutController,
@@ -44,5 +45,7 @@ authRouter.post(
   validationMiddleware(logoutSchema, "body"),
   logoutController,
 );
+
+authRouter.get("/me", authMiddleware, meController);
 
 export default authRouter;

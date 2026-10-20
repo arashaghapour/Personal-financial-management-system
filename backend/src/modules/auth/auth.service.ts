@@ -19,6 +19,7 @@ import {
 import { hashRefreshToken } from "./refresh-token.utils.js";
 
 import type {
+  PublicUser,
   RegisterRequest,
   RegisterResponse,
   LoginRequest,
@@ -229,5 +230,22 @@ export const logout = async (
   await authRepositoryModule.authRepository.revokeRefreshToken(
     session.id,
   );
+};
+
+export const getCurrentUser = async (
+  userId: number,
+): Promise<PublicUser> => {
+  const user =
+    await authRepositoryModule.authRepository.findById(userId);
+
+  if (!user) {
+    throw new AppError(
+      404,
+      errorCodes.NOT_FOUND,
+      "User not found",
+    );
+  }
+
+  return toPublicUser(user);
 };
 

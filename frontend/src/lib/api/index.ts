@@ -1,16 +1,20 @@
 /**
- * API configuration for future backend integration.
+ * API configuration for backend integration.
  *
- * The base URL is provided through the VITE_API_BASE_URL environment variable
- * (see frontend/.env.example) with a safe local development default. No
- * authentication, token refresh, or feature-specific requests are implemented
- * yet.
+ * In development the browser calls the same-origin `/api` path, which Vite
+ * proxies to the backend (see vite.config.ts). This avoids cross-origin
+ * requests, which the backend does not currently allow.
  *
- * Frontend environment variables are bundled into the client, so they must
- * never contain secrets.
+ * Production builds may override the base URL through VITE_API_BASE_URL (see
+ * frontend/.env.example). Frontend environment variables are bundled into the
+ * client, so they must never contain secrets.
  */
-const DEFAULT_API_BASE_URL = "http://localhost:3000/api";
+const DEFAULT_API_BASE_URL = "/api";
 
-export const API_BASE_URL: string =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  DEFAULT_API_BASE_URL;
+const configuredBaseUrl = (
+  import.meta.env.VITE_API_BASE_URL as string | undefined
+)?.trim();
+
+export const API_BASE_URL: string = import.meta.env.DEV
+  ? DEFAULT_API_BASE_URL
+  : configuredBaseUrl || DEFAULT_API_BASE_URL;

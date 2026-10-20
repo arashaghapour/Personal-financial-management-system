@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+
+import { Button } from '../ui/Button'
+
+import { useAuth } from '../../features/auth/auth-context'
 
 import '../../styles/layout.css'
 
@@ -22,7 +26,22 @@ const NAV_ITEMS: NavItem[] = [
 ]
 
 export default function AppLayout() {
+  const { status, user, logout } = useAuth()
+  const navigate = useNavigate()
+
   const [menuOpen, setMenuOpen] = useState(false)
+  const [logoutPending, setLogoutPending] = useState(false)
+
+  const handleLogout = async () => {
+    setLogoutPending(true)
+
+    try {
+      await logout()
+    } finally {
+      setLogoutPending(false)
+      navigate('/login', { replace: true })
+    }
+  }
 
   return (
     <div className="app-shell">
@@ -72,6 +91,20 @@ export default function AppLayout() {
               ))}
             </ul>
           </nav>
+          {status === 'authenticated' && user ? (
+            <div className="app-header-actions">
+              <span className="app-header-user">
+                {user.firstName} {user.lastName}
+              </span>
+              <Button
+                variant="secondary"
+                onClick={handleLogout}
+                disabled={logoutPending}
+              >
+                {logoutPending ? 'Signing out…' : 'Log out'}
+              </Button>
+            </div>
+          ) : null}
         </div>
       </header>
       <main id="main-content" className="app-main">
