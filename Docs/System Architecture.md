@@ -1,5 +1,7 @@
 # System Architecture
 
+> **Implementation note:** This is the original design document. The current implementation is described in [Architecture.md](Architecture.md), which should be treated as the accurate architecture reference where the two documents differ.
+
 ## 1. Overview
 
 The Personal Finance Management System is a web-based application for managing and analyzing personal finances.
