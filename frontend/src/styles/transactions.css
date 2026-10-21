@@ -1,0 +1,283 @@
+/*
+ * Transactions styles: page header, filter bar, transaction cards, create/edit
+ * panels, pagination, success notices, and the delete confirmation dialog.
+ */
+
+.transactions-page {
+  max-width: var(--page-max-width);
+}
+
+.transaction-notice {
+  margin-bottom: var(--space-5);
+  padding: 12px 14px;
+  border: var(--border-width) solid rgba(22, 163, 74, 0.25);
+  border-radius: var(--border-radius-md);
+  background: rgba(22, 163, 74, 0.08);
+  color: #166534;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* ---- Create / edit panel ---- */
+.transaction-panel {
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.transaction-panel h2 {
+  margin-bottom: var(--space-1);
+}
+
+.transaction-form {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.transaction-form select,
+.transaction-filters select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 1rem;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.transaction-form select:hover:not(:focus):not(:disabled),
+.transaction-filters select:hover:not(:focus) {
+  border-color: var(--color-border-strong);
+}
+
+.transaction-form select:focus,
+.transaction-filters select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+.transaction-form select[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.transaction-form select:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  background: var(--color-bg);
+}
+
+.transaction-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* ---- Filters ---- */
+.transaction-filters {
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+}
+
+.transaction-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+
+.transaction-filters .form-field {
+  gap: 5px;
+}
+
+/* ---- List ---- */
+.transactions-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transaction-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.transaction-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.transaction-card-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  overflow-wrap: anywhere;
+}
+
+.transaction-type {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: var(--border-radius-full);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.transaction-type--income {
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+}
+
+.transaction-type--expense {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.transaction-amount {
+  margin: 0 0 var(--space-4);
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.transaction-amount--income {
+  color: #166534;
+}
+
+.transaction-amount--expense {
+  color: var(--color-heading);
+}
+
+.transaction-card-meta {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-5);
+}
+
+.transaction-card-meta div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.transaction-card-meta dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.transaction-card-meta dd {
+  margin: 0;
+  color: var(--color-heading);
+  font-weight: 500;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.transaction-card-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.transaction-card-actions .btn {
+  flex: 1;
+}
+
+/* ---- Pagination ---- */
+.transaction-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.transaction-pagination-status {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Delete dialog ---- */
+.transaction-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.transaction-modal {
+  width: min(100%, 440px);
+  padding: var(--space-6);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.transaction-modal h2 {
+  margin-bottom: var(--space-3);
+}
+
+.transaction-modal .state {
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .transactions-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .transaction-panel,
+  .transaction-filters {
+    padding: var(--space-4);
+  }
+
+  .transaction-form-actions .btn {
+    flex: 1;
+  }
+
+  .transaction-pagination {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .transaction-pagination-status {
+    order: -1;
+    width: 100%;
+    text-align: center;
+  }
+
+  .transaction-modal {
+    padding: var(--space-5);
+  }
+}

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { screen } from "@testing-library/react";
 import { MemoryRouter, useRoutes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { routes } from "./router";
 
@@ -26,15 +27,35 @@ vi.mock("../features/categories/api/categories.queries", () => ({
   deleteCategoryMutation: vi.fn(),
 }));
 
+vi.mock("../features/transactions/api/transactions.queries", () => ({
+  fetchTransactions: vi.fn().mockResolvedValue({
+    data: [],
+    pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+  }),
+  fetchTransaction: vi.fn(),
+  createTransactionMutation: vi.fn(),
+  updateTransactionMutation: vi.fn(),
+  deleteTransactionMutation: vi.fn(),
+}));
+
 function RoutesProbe() {
   return useRoutes(routes);
 }
 
 function renderRoutes(path: string, status: AuthStatus) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: Infinity },
+      mutations: { retry: false },
+    },
+  });
+
   return renderWithAuth(
-    <MemoryRouter initialEntries={[path]}>
-      <RoutesProbe />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <RoutesProbe />
+      </MemoryRouter>
+    </QueryClientProvider>,
     status === "authenticated"
       ? authenticated()
       : { status, user: null },
@@ -71,6 +92,22 @@ describe("router configuration", () => {
 
     expect(
       await screen.findByRole("heading", { name: "Categories", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the transactions page at /transactions", async () => {
+    renderRoutes("/transactions", "authenticated");
+
+    expect(
+      await screen.findByRole("heading", { name: "Transactions", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("redirects unauthenticated users away from transactions", () => {
+    renderRoutes("/transactions", "unauthenticated");
+
+    expect(
+      screen.getByRole("heading", { name: "Sign in", level: 1 }),
     ).toBeInTheDocument();
   });
 
