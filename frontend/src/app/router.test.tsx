@@ -27,6 +27,15 @@ vi.mock("../features/categories/api/categories.queries", () => ({
   deleteCategoryMutation: vi.fn(),
 }));
 
+vi.mock("../features/budgets/api/budgets.queries", () => ({
+  fetchBudgets: vi.fn().mockResolvedValue([]),
+  fetchBudget: vi.fn(),
+  fetchBudgetProgress: vi.fn(),
+  createBudgetMutation: vi.fn(),
+  updateBudgetMutation: vi.fn(),
+  deleteBudgetMutation: vi.fn(),
+}));
+
 vi.mock("../features/transactions/api/transactions.queries", () => ({
   fetchTransactions: vi.fn().mockResolvedValue({
     data: [],
@@ -103,6 +112,14 @@ describe("router configuration", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders the budgets page at /budgets", async () => {
+    renderRoutes("/budgets", "authenticated");
+
+    expect(
+      await screen.findByRole("heading", { name: "Budgets", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
   it("redirects unauthenticated users away from transactions", () => {
     renderRoutes("/transactions", "unauthenticated");
 
@@ -113,6 +130,14 @@ describe("router configuration", () => {
 
   it("redirects unauthenticated users away from categories", () => {
     renderRoutes("/categories", "unauthenticated");
+
+    expect(
+      screen.getByRole("heading", { name: "Sign in", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("redirects unauthenticated users away from budgets", () => {
+    renderRoutes("/budgets", "unauthenticated");
 
     expect(
       screen.getByRole("heading", { name: "Sign in", level: 1 }),

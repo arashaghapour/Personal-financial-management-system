@@ -5,6 +5,7 @@ import ProtectedRoute from './ProtectedRoute'
 import PublicOnlyRoute from './PublicOnlyRoute'
 import AppLayout from '../components/layout/AppLayout'
 import AccountsPage from '../pages/AccountsPage'
+import BudgetsPage from '../pages/BudgetsPage'
 import CategoriesPage from '../pages/CategoriesPage'
 import DashboardPage from '../pages/DashboardPage'
 import LoginPage from '../pages/LoginPage'
@@ -21,6 +22,7 @@ import TransactionsPage from '../pages/TransactionsPage'
  * - /accounts    account management page (protected route)
  * - /categories  category management page (protected route)
  * - /transactions transaction management page (protected route)
+ * - /budgets     monthly budget management page (protected route)
  * - /login       authentication page (public only)
  * - /register    registration page (public only)
  * - *            not-found page for unmatched routes
@@ -61,6 +63,14 @@ export const routes: RouteObject[] = [
         element: (
           <ProtectedRoute>
             <TransactionsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'budgets',
+        element: (
+          <ProtectedRoute>
+            <BudgetsPage />
           </ProtectedRoute>
         ),
       },
