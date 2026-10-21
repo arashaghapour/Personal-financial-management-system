@@ -18,6 +18,14 @@ vi.mock("../features/accounts/api/accounts.queries", () => ({
   deleteAccountMutation: vi.fn(),
 }));
 
+vi.mock("../features/categories/api/categories.queries", () => ({
+  fetchCategories: vi.fn().mockResolvedValue([]),
+  fetchCategory: vi.fn(),
+  createCategoryMutation: vi.fn(),
+  updateCategoryMutation: vi.fn(),
+  deleteCategoryMutation: vi.fn(),
+}));
+
 function RoutesProbe() {
   return useRoutes(routes);
 }
@@ -55,6 +63,22 @@ describe("router configuration", () => {
 
     expect(
       await screen.findByRole("heading", { name: "Accounts", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the categories page at /categories", async () => {
+    renderRoutes("/categories", "authenticated");
+
+    expect(
+      await screen.findByRole("heading", { name: "Categories", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("redirects unauthenticated users away from categories", () => {
+    renderRoutes("/categories", "unauthenticated");
+
+    expect(
+      screen.getByRole("heading", { name: "Sign in", level: 1 }),
     ).toBeInTheDocument();
   });
 
