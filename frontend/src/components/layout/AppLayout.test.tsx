@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 
@@ -71,6 +71,53 @@ describe("AppLayout", () => {
     expect(
       screen.getByRole("button", { name: "Close menu" }),
     ).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("closes the mobile navigation with Escape and restores focus", async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    const toggle = screen.getByRole("button", { name: "Open menu" });
+    await user.click(toggle);
+
+    await user.keyboard("{Escape}");
+
+    expect(
+      screen.getByRole("button", { name: "Open menu" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveFocus();
+  });
+
+  it("closes the mobile navigation when the backdrop is tapped", async () => {
+    const user = userEvent.setup();
+    const { container } = renderLayout();
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+
+    const backdrop = container.querySelector(".app-nav-backdrop");
+    expect(backdrop).not.toBeNull();
+
+    fireEvent.mouseDown(backdrop!);
+
+    expect(
+      screen.getByRole("button", { name: "Open menu" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(container.querySelector(".app-nav-backdrop")).toBeNull();
+  });
+
+  it("navigates and closes the mobile menu when a link is selected", async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+
+    const nav = screen.getByRole("navigation", { name: "Primary" });
+    await user.click(within(nav).getByRole("link", { name: "Accounts" }));
+
+    expect(
+      screen.getByRole("button", { name: "Open menu" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByTestId("location")).toHaveTextContent("/accounts");
   });
 
   it("shows the signed-in user and logs out to the login page", async () => {

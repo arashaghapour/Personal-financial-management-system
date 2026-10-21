@@ -52,6 +52,7 @@
   flex: 1 1 180px;
   flex-direction: column;
   gap: 7px;
+  min-width: 0;
   max-width: 220px;
 }
 
@@ -63,6 +64,7 @@
 
 .dashboard-filter-field input {
   width: 100%;
+  min-width: 0;
   min-height: 42px;
   padding: 8px 10px;
   border: var(--border-width) solid var(--color-border);
@@ -223,6 +225,7 @@
 }
 
 .dashboard-panel {
+  min-width: 0;
   padding: var(--space-5);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--border-radius-lg);
@@ -257,10 +260,12 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
+  min-width: 0;
   margin-bottom: var(--space-1);
 }
 
 .dashboard-category-name {
+  min-width: 0;
   overflow: hidden;
   color: var(--color-heading);
   font-weight: 600;
@@ -298,6 +303,7 @@
 /* ---- Recent transactions ---- */
 .dashboard-panel-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -473,6 +479,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .dashboard-filters {
+    padding: var(--space-4);
+  }
+
   .dashboard-filter-field {
     max-width: none;
   }
@@ -485,9 +495,24 @@
     flex: 1 1 auto;
   }
 
+  .dashboard-category-label-row {
+    align-items: flex-start;
+  }
+
+  .dashboard-category-name {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
   .dashboard-transaction {
     flex-direction: column;
     gap: var(--space-1);
+  }
+
+  .dashboard-panel {
+    padding: var(--space-4);
   }
 }
 
