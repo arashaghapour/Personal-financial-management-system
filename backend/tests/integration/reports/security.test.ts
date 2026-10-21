@@ -3,6 +3,21 @@ import { describe, expect, it } from "vitest";
 
 import app from "../../../src/app.js";
 
+/**
+ * Changes a significant bit of the signature. Mutating the final base64url
+ * character is unreliable because its low padding bits are ignored, which can
+ * leave the decoded signature unchanged.
+ */
+const tamperToken = (token: string): string => {
+  const [header, payload, signature] = token.split(".");
+
+  const tamperedSignature =
+    (signature[0] === "A" ? "B" : "A") +
+    signature.slice(1);
+
+  return [header, payload, tamperedSignature].join(".");
+};
+
 describe("Reports API - Security", () => {
   describe("Authentication", () => {
     it("should reject summary without authentication", async () => {
@@ -70,7 +85,7 @@ describe("Reports API - Security", () => {
         .expect(200);
 
       const token = loginResponse.body.accessToken;
-      const tamperedToken = `${token.slice(0, -1)}x`;
+      const tamperedToken = tamperToken(token);
 
       await request(app)
         .get("/api/reports/summary")
@@ -103,7 +118,7 @@ describe("Reports API - Security", () => {
         .expect(200);
 
       const token = loginResponse.body.accessToken;
-      const tamperedToken = `${token.slice(0, -1)}x`;
+      const tamperedToken = tamperToken(token);
 
       await request(app)
         .get("/api/reports/expenses")
@@ -136,7 +151,7 @@ describe("Reports API - Security", () => {
         .expect(200);
 
       const token = loginResponse.body.accessToken;
-      const tamperedToken = `${token.slice(0, -1)}x`;
+      const tamperedToken = tamperToken(token);
 
       await request(app)
         .get("/api/reports/cash-flow")
