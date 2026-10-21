@@ -568,6 +568,15 @@
   color: var(--color-primary);
 }
 
+.btn--danger {
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;

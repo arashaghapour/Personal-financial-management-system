@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from 'react'
 
 import '../../styles/ui.css'
 
-type ButtonVariant = 'primary' | 'secondary'
+type ButtonVariant = 'primary' | 'secondary' | 'danger'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   /** Visual style of the button. */

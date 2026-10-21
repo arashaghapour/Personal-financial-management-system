@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { screen } from "@testing-library/react";
 import { MemoryRouter, useRoutes } from "react-router-dom";
 
@@ -9,6 +9,14 @@ import {
   renderWithAuth,
   type AuthStatus,
 } from "../test/auth-mock";
+
+vi.mock("../features/accounts/api/accounts.queries", () => ({
+  fetchAccounts: vi.fn().mockResolvedValue([]),
+  fetchAccount: vi.fn(),
+  createAccountMutation: vi.fn(),
+  updateAccountMutation: vi.fn(),
+  deleteAccountMutation: vi.fn(),
+}));
 
 function RoutesProbe() {
   return useRoutes(routes);
@@ -39,6 +47,22 @@ describe("router configuration", () => {
 
     expect(
       screen.getByRole("heading", { name: "Dashboard", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the accounts page at /accounts", async () => {
+    renderRoutes("/accounts", "authenticated");
+
+    expect(
+      await screen.findByRole("heading", { name: "Accounts", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("redirects unauthenticated users away from accounts", () => {
+    renderRoutes("/accounts", "unauthenticated");
+
+    expect(
+      screen.getByRole("heading", { name: "Sign in", level: 1 }),
     ).toBeInTheDocument();
   });
 
