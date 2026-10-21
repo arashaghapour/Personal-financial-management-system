@@ -34,7 +34,32 @@ describe("App", () => {
   it("restores a stored session and renders the application shell", async () => {
     tokenStorage.setTokens("access-token", "refresh-token");
 
-    fetchMock.mockResolvedValue(jsonResponse(mockUser));
+    fetchMock.mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.startsWith("/api/dashboard")) {
+        return Promise.resolve(
+          jsonResponse({
+            totalBalance: 0,
+            totalIncome: 0,
+            totalExpenses: 0,
+            netCashFlow: 0,
+            expenseByCategory: [],
+            incomeByCategory: [],
+            recentTransactions: [],
+          }),
+        );
+      }
+
+      if (
+        url.startsWith("/api/accounts") ||
+        url.startsWith("/api/categories")
+      ) {
+        return Promise.resolve(jsonResponse([]));
+      }
+
+      return Promise.resolve(jsonResponse(mockUser));
+    });
 
     render(<App />);
 

@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 
 import { accountKeys } from "../../accounts/api/account.keys";
 import { budgetKeys } from "../../budgets/api/budget.keys";
+import { dashboardKeys } from "../../dashboard/api/dashboard.keys";
 
 import {
   createTransactionMutation,
@@ -38,9 +39,9 @@ export const useTransactionQuery = (id: string) =>
   });
 
 /**
- * Transaction mutations change account balances and budget spending on the
- * backend. Invalidating all three roots keeps balances and progress fresh
- * wherever they are displayed.
+ * Transaction mutations change account balances, budget spending, and the
+ * dashboard aggregates on the backend. Invalidating every affected root keeps
+ * those views fresh wherever they are displayed.
  */
 const invalidateTransactionData = async (
   queryClient: ReturnType<typeof useQueryClient>,
@@ -49,6 +50,7 @@ const invalidateTransactionData = async (
     queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
     queryClient.invalidateQueries({ queryKey: accountKeys.all }),
     queryClient.invalidateQueries({ queryKey: budgetKeys.all }),
+    queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
   ]);
 };
 
