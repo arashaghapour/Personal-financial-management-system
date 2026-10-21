@@ -27,6 +27,18 @@ vi.mock("../features/categories/api/categories.queries", () => ({
   deleteCategoryMutation: vi.fn(),
 }));
 
+vi.mock("../features/dashboard/api/dashboard.queries", () => ({
+  fetchDashboard: vi.fn().mockResolvedValue({
+    totalBalance: 0,
+    totalIncome: 0,
+    totalExpenses: 0,
+    netCashFlow: 0,
+    expenseByCategory: [],
+    incomeByCategory: [],
+    recentTransactions: [],
+  }),
+}));
+
 vi.mock("../features/budgets/api/budgets.queries", () => ({
   fetchBudgets: vi.fn().mockResolvedValue([]),
   fetchBudget: vi.fn(),

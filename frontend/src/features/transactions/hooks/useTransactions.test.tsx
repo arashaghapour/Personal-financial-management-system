@@ -11,6 +11,8 @@ import {
 
 import { accountKeys } from "../../accounts/api/account.keys";
 import { budgetKeys } from "../../budgets/api/budget.keys";
+import { dashboardKeys } from "../../dashboard/api/dashboard.keys";
+import { deleteTransactionMutation } from "../api/transactions.queries";
 import { transactionKeys } from "../api/transaction.keys";
 
 import type { ReactNode } from "react";
@@ -69,9 +71,10 @@ describe("transaction budget invalidation", () => {
     });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: accountKeys.all });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: budgetKeys.all });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: dashboardKeys.all });
   });
 
-  it("invalidates budget caches after update and delete", async () => {
+  it("invalidates budget and dashboard caches after update and delete", async () => {
     const queryClient = makeClient();
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");
     const wrapper = makeWrapper(queryClient);
@@ -99,7 +102,34 @@ describe("transaction budget invalidation", () => {
     const budgetInvalidations = invalidate.mock.calls.filter(
       ([options]) => options?.queryKey === budgetKeys.all,
     );
+    const dashboardInvalidations = invalidate.mock.calls.filter(
+      ([options]) => options?.queryKey === dashboardKeys.all,
+    );
 
     expect(budgetInvalidations).toHaveLength(2);
+    expect(dashboardInvalidations).toHaveLength(2);
+  });
+
+  it("does not invalidate dashboard caches when a transaction mutation fails", async () => {
+    const queryClient = makeClient();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+
+    vi.mocked(deleteTransactionMutation).mockRejectedValueOnce(
+      new Error("delete failed"),
+    );
+
+    const { result } = renderHook(() => useDeleteTransactionMutation(), {
+      wrapper: makeWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await expect(result.current.mutateAsync("tx-1")).rejects.toThrow(
+        "delete failed",
+      );
+    });
+
+    expect(invalidate).not.toHaveBeenCalledWith({
+      queryKey: dashboardKeys.all,
+    });
   });
 });
