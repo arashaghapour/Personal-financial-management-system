@@ -12,6 +12,7 @@ import {
 import { accountKeys } from "../../accounts/api/account.keys";
 import { budgetKeys } from "../../budgets/api/budget.keys";
 import { dashboardKeys } from "../../dashboard/api/dashboard.keys";
+import { reportKeys } from "../../reports/api/reports.keys";
 import { deleteTransactionMutation } from "../api/transactions.queries";
 import { transactionKeys } from "../api/transaction.keys";
 
@@ -46,7 +47,7 @@ describe("transaction budget invalidation", () => {
     vi.clearAllMocks();
   });
 
-  it("invalidates transaction, account, and budget caches after create", async () => {
+  it("invalidates transaction, account, budget, dashboard, and report caches after create", async () => {
     const queryClient = makeClient();
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -72,9 +73,10 @@ describe("transaction budget invalidation", () => {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: accountKeys.all });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: budgetKeys.all });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: dashboardKeys.all });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: reportKeys.all });
   });
 
-  it("invalidates budget and dashboard caches after update and delete", async () => {
+  it("invalidates budget, dashboard, and report caches after update and delete", async () => {
     const queryClient = makeClient();
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");
     const wrapper = makeWrapper(queryClient);
@@ -105,12 +107,16 @@ describe("transaction budget invalidation", () => {
     const dashboardInvalidations = invalidate.mock.calls.filter(
       ([options]) => options?.queryKey === dashboardKeys.all,
     );
+    const reportInvalidations = invalidate.mock.calls.filter(
+      ([options]) => options?.queryKey === reportKeys.all,
+    );
 
     expect(budgetInvalidations).toHaveLength(2);
     expect(dashboardInvalidations).toHaveLength(2);
+    expect(reportInvalidations).toHaveLength(2);
   });
 
-  it("does not invalidate dashboard caches when a transaction mutation fails", async () => {
+  it("does not invalidate dashboard or report caches when a transaction mutation fails", async () => {
     const queryClient = makeClient();
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -130,6 +136,9 @@ describe("transaction budget invalidation", () => {
 
     expect(invalidate).not.toHaveBeenCalledWith({
       queryKey: dashboardKeys.all,
+    });
+    expect(invalidate).not.toHaveBeenCalledWith({
+      queryKey: reportKeys.all,
     });
   });
 });
