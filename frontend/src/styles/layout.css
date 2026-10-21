@@ -32,10 +32,17 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
   font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--color-heading);
   text-decoration: none;
+}
+
+.app-logo-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-logo:hover {
@@ -45,6 +52,7 @@
 .app-logo-mark {
   display: grid;
   place-items: center;
+  flex: none;
   width: 32px;
   height: 32px;
   border-radius: var(--border-radius-md);
@@ -56,18 +64,23 @@
 
 /* ---- Navigation ---- */
 .app-nav {
+  min-width: 0;
   margin-left: auto;
 }
 
 .app-nav-list {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--space-1);
   list-style: none;
 }
 
 .app-nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--border-radius-md);
   color: var(--color-text-muted);
@@ -89,13 +102,17 @@
 /* ---- Authenticated header actions ---- */
 .app-header-actions {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-3);
 }
 
 .app-header-user {
+  max-width: 200px;
+  overflow: hidden;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -105,8 +122,9 @@
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  flex: none;
+  width: 44px;
+  height: 44px;
   margin-left: auto;
   padding: var(--space-2);
   border: var(--border-width) solid var(--color-border);
@@ -122,6 +140,10 @@
   background: var(--color-text);
 }
 
+.app-nav-backdrop {
+  display: none;
+}
+
 /* ---- Main content area ---- */
 .app-main {
   flex: 1;
@@ -132,7 +154,7 @@
 }
 
 /* ---- Responsive rules ---- */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .app-nav-toggle {
     display: inline-flex;
   }
@@ -144,7 +166,12 @@
   .app-nav.is-open {
     display: block;
     position: absolute;
-    inset: var(--header-height) 0 auto 0;
+    top: 100%;
+    right: 0;
+    left: 0;
+    max-height: calc(100svh - var(--header-height));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: var(--space-4);
     background: var(--color-surface);
     border-bottom: var(--border-width) solid var(--color-border);
@@ -158,10 +185,53 @@
   }
 
   .app-nav-link {
+    min-height: 44px;
     padding: var(--space-3);
+  }
+
+  .app-nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: var(--header-height) 0 0;
+    z-index: 9;
+    background: rgba(15, 23, 42, 0.28);
   }
 
   .app-main {
     padding: var(--space-6) var(--space-4);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1180px) {
+  .app-header-user {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header-inner {
+    gap: var(--space-2);
+  }
+
+  .app-header-user {
+    display: none;
+  }
+
+  .app-header-actions {
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-logo-text {
+    display: none;
+  }
+
+  .app-header-inner {
+    padding: 0 var(--space-3);
+  }
+
+  .app-main {
+    padding: var(--space-5) var(--space-3);
   }
 }

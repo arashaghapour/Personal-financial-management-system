@@ -82,6 +82,7 @@ body {
   line-height: var(--line-height-base);
   color: var(--color-text);
   background: var(--color-bg);
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -132,6 +133,15 @@ button {
   color: inherit;
 }
 
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    min-width: 0;
+    font-size: 1rem;
+  }
+}
+
 /* ---- Consistent keyboard focus indicator ---- */
 :focus-visible {
   outline: 2px solid var(--color-primary);
@@ -168,4 +178,10 @@ button {
 .skip-link:focus-visible {
   transform: translateY(0);
   text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link {
+    transition: none;
+  }
 }

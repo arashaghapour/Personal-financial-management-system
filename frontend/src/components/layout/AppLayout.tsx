@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { Button } from '../ui/Button'
@@ -31,6 +31,30 @@ export default function AppLayout() {
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [logoutPending, setLogoutPending] = useState(false)
+  const navToggleRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+        navToggleRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [menuOpen])
+
+  const closeMenu = () => {
+    setMenuOpen(false)
+  }
 
   const handleLogout = async () => {
     setLogoutPending(true)
@@ -57,6 +81,7 @@ export default function AppLayout() {
             <span className="app-logo-text">Finance Manager</span>
           </Link>
           <button
+            ref={navToggleRef}
             type="button"
             className="app-nav-toggle"
             aria-expanded={menuOpen}
@@ -80,7 +105,7 @@ export default function AppLayout() {
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
-                    onClick={() => setMenuOpen(false)}
+                    onClick={closeMenu}
                     className={({ isActive }) =>
                       isActive ? 'app-nav-link is-active' : 'app-nav-link'
                     }
@@ -107,6 +132,13 @@ export default function AppLayout() {
           ) : null}
         </div>
       </header>
+      {menuOpen ? (
+        <div
+          className="app-nav-backdrop"
+          aria-hidden="true"
+          onMouseDown={closeMenu}
+        />
+      ) : null}
       <main id="main-content" className="app-main">
         <Outlet />
       </main>

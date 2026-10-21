@@ -81,9 +81,13 @@ export function CashFlowReportView({ filters }: CashFlowReportViewProps) {
                 {report.data.map((entry) => (
                   <tr key={entry.date}>
                     <th scope="row">{formatTransactionDate(entry.date)}</th>
-                    <td>{formatCurrency(entry.income)}</td>
-                    <td>{formatCurrency(entry.expenses)}</td>
-                    <td>{formatCurrency(entry.netCashFlow)}</td>
+                    <td data-label="Income">{formatCurrency(entry.income)}</td>
+                    <td data-label="Expenses">
+                      {formatCurrency(entry.expenses)}
+                    </td>
+                    <td data-label="Net cash flow">
+                      {formatCurrency(entry.netCashFlow)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -158,8 +158,12 @@ export function ExpenseReportView({
                       <th scope="row">
                         {category.categoryName?.trim() || "Uncategorized"}
                       </th>
-                      <td>{formatCurrency(category.amount)}</td>
-                      <td>{formatReportCount(category.transactionCount)}</td>
+                      <td data-label="Amount">
+                        {formatCurrency(category.amount)}
+                      </td>
+                      <td data-label="Transactions">
+                        {formatReportCount(category.transactionCount)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

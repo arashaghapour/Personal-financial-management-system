@@ -502,6 +502,23 @@ describe("ReportsPage cash flow report", () => {
     ]);
   });
 
+  it("labels cash flow values for the stacked mobile table layout", async () => {
+    renderReports("/reports/cash-flow");
+
+    const table = await getReportTable("Daily cash flow");
+    const firstRow = within(table).getAllByRole("row")[1];
+
+    expect(
+      firstRow.querySelector('[data-label="Income"]'),
+    ).toHaveTextContent("$1,000.00");
+    expect(
+      firstRow.querySelector('[data-label="Expenses"]'),
+    ).toHaveTextContent("$200.00");
+    expect(
+      firstRow.querySelector('[data-label="Net cash flow"]'),
+    ).toHaveTextContent("$800.00");
+  });
+
   it("shows an empty state when there is no cash flow data", async () => {
     reportsApi.fetchCashFlowReport.mockResolvedValue({
       startDate: "",
