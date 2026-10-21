@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import PublicOnlyRoute from './PublicOnlyRoute'
 import AppLayout from '../components/layout/AppLayout'
+import AccountsPage from '../pages/AccountsPage'
 import DashboardPage from '../pages/DashboardPage'
 import LoginPage from '../pages/LoginPage'
 import NotFoundPage from '../pages/NotFoundPage'
@@ -15,6 +16,7 @@ import RegisterPage from '../pages/RegisterPage'
  * Current routes:
  * - /            redirects to /dashboard
  * - /dashboard   initial dashboard placeholder (protected route)
+ * - /accounts    account management page (protected route)
  * - /login       authentication page (public only)
  * - /register    registration page (public only)
  * - *            not-found page for unmatched routes
@@ -31,6 +33,14 @@ export const routes: RouteObject[] = [
         element: (
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'accounts',
+        element: (
+          <ProtectedRoute>
+            <AccountsPage />
           </ProtectedRoute>
         ),
       },
