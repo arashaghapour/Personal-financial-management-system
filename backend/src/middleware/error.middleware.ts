@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler } from "express";
+import { Prisma } from "../generated/prisma/client.js";
 import { errorCodes } from "../constants/error-codes.js";
 import { AppError } from "../utils/app-error.js";
 
@@ -21,6 +22,26 @@ export const errorMiddleware: ErrorRequestHandler = (
         }),
       },
     });
+  }
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === "P2002") {
+      return res.status(409).json({
+        error: {
+          code: errorCodes.CONFLICT,
+          message: "Resource already exists",
+        },
+      });
+    }
+
+    if (error.code === "P2003") {
+      return res.status(409).json({
+        error: {
+          code: errorCodes.CONFLICT,
+          message: "Resource is still in use",
+        },
+      });
+    }
   }
 
   console.error(error);

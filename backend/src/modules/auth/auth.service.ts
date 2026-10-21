@@ -28,6 +28,22 @@ import type {
   RefreshResponse,
 } from "./auth.types.js";
 
+const getRefreshTokenExpiresAt = async (
+  refreshToken: string,
+): Promise<Date> => {
+  const { payload } = await verifyRefreshToken(refreshToken);
+
+  if (typeof payload.exp !== "number") {
+    throw new AppError(
+      500,
+      errorCodes.INTERNAL_SERVER_ERROR,
+      "Internal server error",
+    );
+  }
+
+  return new Date(payload.exp * 1000);
+};
+
 export const register = async (
   data: RegisterRequest,
 ): Promise<RegisterResponse> => {
@@ -93,9 +109,7 @@ export const login = async (
 
   const tokenHash = hashRefreshToken(refreshToken);
 
-  const expiresAt = new Date(
-    Date.now() + 7 * 24 * 60 * 60 * 1000,
-  );
+  const expiresAt = await getRefreshTokenExpiresAt(refreshToken);
 
   await authRepositoryModule.authRepository.createRefreshToken({
     userId: user.id,
@@ -185,19 +199,7 @@ export const refresh = async (
 
   const newTokenHash = hashRefreshToken(refreshToken);
 
-  const newPayload = await verifyRefreshToken(refreshToken);
-
-  if (!newPayload.payload.exp) {
-    throw new AppError(
-      500,
-      errorCodes.INTERNAL_SERVER_ERROR,
-      "Internal server error",
-    );
-  }
-
-  const newExpiresAt = new Date(
-    newPayload.payload.exp * 1000,
-  );
+  const newExpiresAt = await getRefreshTokenExpiresAt(refreshToken);
 
   await authRepositoryModule.authRepository.rotateRefreshToken({
     oldTokenId: storedToken.id,

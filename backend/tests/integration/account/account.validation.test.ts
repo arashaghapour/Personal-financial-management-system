@@ -70,6 +70,19 @@ describe("Account validation", () => {
       expect(response.status).toBe(400);
     });
 
+    it("should trim surrounding whitespace from the name", async () => {
+      const response = await request(app)
+        .post("/api/accounts")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          ...validAccount,
+          name: "  Main Bank  ",
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.name).toBe("Main Bank");
+    });
+
     it("should reject name longer than 100 characters", async () => {
       const response = await request(app)
         .post("/api/accounts")
@@ -156,6 +169,27 @@ describe("Account validation", () => {
         });
 
       expect(response.status).toBe(400);
+    });
+
+    it("should trim surrounding whitespace from an updated name", async () => {
+      const createResponse = await request(app)
+        .post("/api/accounts")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send(validAccount);
+
+      expect(createResponse.status).toBe(201);
+
+      const accountId = createResponse.body.id;
+
+      const response = await request(app)
+        .patch(`/api/accounts/${accountId}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "  Savings  ",
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe("Savings");
     });
   });
 });

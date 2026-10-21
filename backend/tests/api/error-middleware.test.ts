@@ -2,6 +2,7 @@ import express from "express";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import { errorCodes } from "../../src/constants/error-codes.js";
+import { Prisma } from "../../src/generated/prisma/client.js";
 import { errorMiddleware } from "../../src/middleware/error.middleware.js";
 import { AppError } from "../../src/utils/app-error.js";
 
@@ -93,24 +94,73 @@ describe("error middleware", () => {
     consoleError.mockRestore();
   });
 
+  it("maps a unique constraint violation to a conflict", async () => {
+    const app = express();
 
+    app.get("/test", () => {
+      throw new Prisma.PrismaClientKnownRequestError(
+        "Unique constraint failed",
+        {
+          code: "P2002",
+          clientVersion: "test",
+        },
+      );
+    });
 
+    app.use(errorMiddleware);
 
-    it("returns a not found error for an unknown route", async () => {
+    const response = await request(app).get("/test");
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: {
+        code: errorCodes.CONFLICT,
+        message: "Resource already exists",
+      },
+    });
+  });
+
+  it("maps a foreign key violation to a conflict", async () => {
+    const app = express();
+
+    app.get("/test", () => {
+      throw new Prisma.PrismaClientKnownRequestError(
+        "Foreign key constraint failed",
+        {
+          code: "P2003",
+          clientVersion: "test",
+        },
+      );
+    });
+
+    app.use(errorMiddleware);
+
+    const response = await request(app).get("/test");
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: {
+        code: errorCodes.CONFLICT,
+        message: "Resource is still in use",
+      },
+    });
+  });
+
+  it("returns a not found error for an unknown route", async () => {
     const app = express();
 
     app.get("/test", (_req, res) => {
-        res.status(200).json({ status: "ok" });
+      res.status(200).json({ status: "ok" });
     });
 
     app.use((_req, _res, next) => {
-        next(
+      next(
         new AppError(
-            404,
-            errorCodes.NOT_FOUND,
-            "Resource not found",
+          404,
+          errorCodes.NOT_FOUND,
+          "Resource not found",
         ),
-        );
+      );
     });
 
     app.use(errorMiddleware);
@@ -119,11 +169,10 @@ describe("error middleware", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
-        error: {
+      error: {
         code: "NOT_FOUND",
         message: "Resource not found",
-        },
+      },
     });
-    });
-
+  });
 });
