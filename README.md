@@ -1,183 +1,202 @@
 # Personal Finance Management System
 
-A web-based personal finance management system for managing and analyzing personal finances.
+A full-stack web application for recording income and expenses, tracking account balances, managing monthly budgets, and reviewing financial summaries. The UI is branded **Finance Manager**.
+
+The project is a portfolio and learning project. It is not a production financial service: see [Security and limitations](#security-and-limitations).
+
+## Overview
+
+The application gives each registered user a private financial workspace:
+
+- Money movements are recorded as income or expense transactions tied to an account and a category.
+- Account balances are updated atomically with transaction changes.
+- Monthly budgets track spending against an expense category.
+- A dashboard and three report views summarize balances, income, expenses, and cash flow.
+- Every protected resource is scoped to the authenticated user on the backend.
 
 ## Features
 
-### 1. User Authentication
+- **Authentication**: register, log in, log out, restore a session, and fetch the current user. Passwords are hashed with Argon2id. Access and refresh tokens are JWTs, and refresh tokens are stored hashed and rotated on use.
+- **User-specific data**: the backend derives the user ID from the access token. Requests cannot select another user's data through a `userId` parameter.
+- **Accounts**: create, view, edit, and delete financial accounts with types `CASH`, `BANK`, `CREDIT_CARD`, `INVESTMENT`, and `OTHER`.
+- **Categories**: create, view, edit, filter, and delete income or expense categories. Names are unique per user and category type.
+- **Transactions**: create, view, filter, sort, paginate, edit, and delete income and expense transactions. Filters cover type, account, category, amount range, and date range.
+- **Balance integrity**: creating, editing, deleting, or moving a transaction updates the affected account balances inside a Prisma database transaction. An expense that would make a balance negative is rejected.
+- **Monthly budgets**: one budget per user, category, year, and month. Progress includes budget amount, spent amount, remaining amount, percentage used, and a status (`UNDER_BUDGET`, `NEAR_LIMIT`, `OVER_BUDGET`).
+- **Dashboard**: total balance, income, expenses, net cash flow, category breakdowns, and recent transactions, with optional date filtering.
+- **Reports**: summary, expense-by-category, and daily cash-flow reports with date filters; expense reports can also be filtered by category.
+- **Input validation and error handling**: Zod schemas validate request bodies, query strings, and route parameters on the backend. The API returns a consistent error envelope. The frontend provides form validation, loading states, empty states, and error messages.
 
-Users can:
+## Technology Stack
 
-- Register
-- Log in and log out
-- Manage their profile
-- Access only their own financial data
+| Area | Technologies |
+|---|---|
+| Frontend | React 19, TypeScript, Vite 8, React Router 7, TanStack Query 5, React Hook Form 7, Zod 4 |
+| Backend | Node.js 22 (Docker and CI), TypeScript 5.9, Express 5, Zod 4, `jose`, Argon2 |
+| Database and ORM | PostgreSQL 16, Prisma 7 with the `pg` driver adapter |
+| Infrastructure and tooling | Docker, Docker Compose, ESLint, Prettier |
+| Testing and CI | Vitest 5, Supertest, Testing Library, `jsdom`, GitHub Actions |
 
-### 2. Financial Accounts
+## Architecture
 
-Users can manage their financial accounts, such as:
+```mermaid
+flowchart LR
+  Browser["Browser<br/>React + TypeScript"]
+  Vite["Vite dev server<br/>:5173 and /api proxy"]
+  API["Express API<br/>:3000"]
+  DB[("PostgreSQL 16<br/>:5432")]
 
-- Bank accounts
-- Cash
-- Wallets
+  Browser -->|"HTTP / JSON"| Vite
+  Vite -->|"/api proxy"| API
+  API -->|"Prisma"| DB
+  API -->|"JWT auth and ownership checks"| API
+```
 
-Each transaction belongs to one account.
+- The **frontend** renders the authenticated application, validates forms, calls the API through a shared client, and handles access-token refresh.
+- The **backend** owns authentication, authorization, validation, business rules, balance changes, budget calculations, and report aggregation.
+- **PostgreSQL** stores users, accounts, categories, transactions, budgets, and refresh-token records.
 
-### 3. Transactions
+The browser calls same-origin `/api`; the Vite dev server proxies that path to the backend container. The backend does not implement CORS, so production hosting would need a same-origin reverse proxy or an intentional CORS configuration.
 
-Users can:
+For implementation details, see [Docs/Architecture.md](Docs/Architecture.md).
 
-- Create transactions
-- View transactions
-- Edit transactions
-- Delete transactions
+## Project Structure
 
-Each transaction contains:
+```text
+.
+├── backend/
+│   ├── prisma/                 Prisma schema and migrations
+│   ├── src/
+│   │   ├── config/             Environment validation
+│   │   ├── middleware/         Validation and error handling
+│   │   ├── modules/            Feature modules (auth, accounts, categories,
+│   │   │                       transactions, budgets, dashboard, reports)
+│   │   ├── routes/             API router composition
+│   │   ├── lib/                Prisma client and database setup
+│   │   └── app.ts, server.ts   Express app and server entry point
+│   └── tests/                  Unit, API, and database integration tests
+├── frontend/
+│   └── src/
+│       ├── app/                Router and route guards
+│       ├── components/         Shared layout and UI components
+│       ├── features/           Feature-specific API, hooks, schemas, and UI
+│       ├── lib/api/            Shared JSON API client
+│       ├── pages/              Application pages
+│       └── styles/             Application styles
+├── Docs/                       Architecture, API, development, and release docs
+├── .github/workflows/ci.yml    GitHub Actions CI
+├── docker-compose.yml          Frontend, backend, and PostgreSQL services
+└── .env.example                PostgreSQL settings for Docker Compose
+```
 
-- Amount
-- Type
-- Date
-- Category
-- Account
-- Description
+## Prerequisites
 
-Transaction types:
+- Git
+- Docker Desktop (or Docker Engine) with Docker Compose v2
+- No Node.js installation is required on the host when using the Docker workflow
 
-- Income
-- Expense
+The images use Node.js 22 Alpine and PostgreSQL 16 Alpine. CI uses Node.js 22.
 
-### 4. Categories
+## Quick Start (Docker)
 
-Users can create and manage categories for their transactions.
+1. Create the local environment files from the examples:
 
-Examples:
+   ```powershell
+   Copy-Item .env.example .env
+   Copy-Item backend/.env.example backend/.env
+   Copy-Item frontend/.env.example frontend/.env
+   ```
 
-- Food
-- Transportation
-- Rent
-- Shopping
-- Salary
+   On macOS or Linux, use `cp` instead of `Copy-Item`.
 
+2. Set `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` in `backend/.env` to two different long random values. For example:
 
-### 5. Budgeting
+   ```powershell
+   $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+   $bytes = New-Object byte[] 48
+   $rng.GetBytes($bytes)
+   [Convert]::ToBase64String($bytes)
+   $rng.Dispose()
+   ```
 
-Budgeting is **monthly**.
+   Run the command twice and put one value in each variable. On macOS or Linux, `openssl rand -base64 48` is an equivalent option.
 
-Each category can have **one budget per month**.
+3. Generate the Prisma client, apply migrations, and start the services:
 
-A budget contains:
+   ```powershell
+   docker compose build
+   docker compose run --rm --no-deps backend npx prisma generate
+   docker compose up -d postgres
+   docker compose run --rm backend npx prisma migrate deploy
+   docker compose up
+   ```
 
-- Category
-- Budget amount
-- Start date
-- End date
+   The generated Prisma client is intentionally ignored by Git, so the `prisma generate` step is required after a fresh clone.
 
-#### Budget Rules
+4. Open the application:
 
-- The default budget period is from the first day to the last day of the month.
-- A user can create a budget during the month.
-- If a budget is created after the beginning of the month, its start date is the creation date.
-- The budget will then apply from its start date until the end of that month.
-- Spending is calculated only from the budget start date onward.
-- Each category can have only one active budget for a given month.
+   - Frontend: <http://localhost:5173>
+   - Backend health check: <http://localhost:3000/api/health>
+   - API base URL: <http://localhost:3000/api>
 
-The system calculates:
+The API does not serve a Swagger UI page. The OpenAPI document is [Docs/OpenAPI.yml](Docs/OpenAPI.yml); see [Docs/API.md](Docs/API.md) for how to use it.
 
-- Budget amount
-- Amount spent
-- Remaining budget
-- Budget usage percentage
+For a step-by-step Docker workflow, tests, and troubleshooting, see [Docs/DEVELOPMENT.md](Docs/DEVELOPMENT.md).
 
-### 6. Financial Dashboard
+## Development and Quality Checks
 
-The dashboard provides an overview of the user's financial situation, including:
+All application commands are intended to run inside the running containers; project dependencies do not need to be installed on the Windows host.
 
-- Current balance
-- Total income
-- Total expenses
-- Net income
-- Budget status
-- Expenses by category
-- Income vs. expenses
+| Task | Command |
+|---|---|
+| View logs | `docker compose logs -f backend frontend postgres` |
+| Apply migrations | `docker compose exec backend npx prisma migrate deploy` |
+| Backend lint | `docker compose exec backend npm run lint` |
+| Frontend lint | `docker compose exec frontend npm run lint` |
+| Backend unit/API tests | See [Docs/DEVELOPMENT.md](Docs/DEVELOPMENT.md#8-backend-tests) |
+| Backend integration tests | See [Docs/DEVELOPMENT.md](Docs/DEVELOPMENT.md#8-backend-tests) |
+| Frontend tests | `docker compose exec frontend npm test` |
+| Backend build and type check | `docker compose exec backend npm run build` |
+| Frontend build and type check | `docker compose exec frontend npm run build` |
+| Stop services | `docker compose down` |
 
-### 7. Reports
+The backend build runs `tsc`; the frontend build runs `tsc -b && vite build`. There are no separate type-check scripts.
 
-Users can view financial reports based on different time periods:
+The `format:check` scripts are not currently reliable: the backend checkout is not Prettier-clean, and the frontend does not install Prettier. Formatting is not part of CI. See [Docs/DEVELOPMENT.md](Docs/DEVELOPMENT.md#formatting) before using those scripts.
 
-- Today
-- This week
-- This month
-- Last month
-- Custom date range
+## API Documentation
 
-Reports may include:
+- The OpenAPI 3.0 document is [Docs/OpenAPI.yml](Docs/OpenAPI.yml).
+- During development the API is served at `http://localhost:3000/api`.
+- The source of truth is the backend implementation; see [Docs/API.md](Docs/API.md) for verified endpoint groups, authentication steps, and request examples.
+- To test protected endpoints, call `POST /api/auth/login`, then send `Authorization: Bearer <access-token>`.
+- The OpenAPI document uses `http://localhost:3000/api` as its server URL. Browsers may block "Try it out" requests from external documentation tools because the backend has no CORS middleware; use the provided `curl` examples or a same-origin proxy instead.
 
-- Total income
-- Total expenses
-- Net income
-- Income by category
-- Expenses by category
-- Period comparisons
+## Security and Limitations
 
-### 8. Search & Filtering
+Implemented safeguards include Argon2id password hashing, signed JWTs with separate access and refresh secrets, hashed refresh-token records with rotation, backend resource-ownership checks, strict request validation, and centralized error responses that hide internal details.
 
-Users can search and filter transactions by:
+Known limitations for reviewers:
 
-- Text
-- Type
-- Category
-- Account
-- Amount range
-- Date range
+- This is a development project, not a production-ready service. There is no public demo deployment.
+- The frontend stores access and refresh tokens in `localStorage`, which is vulnerable if the application ever suffers an XSS defect.
+- The backend has no CORS middleware, rate limiting, security-header middleware, email verification, or password-reset flow.
+- Docker images run the development servers (`tsx watch` and Vite), not production builds.
+- Test-support routes (`/api/validation-test`, `/api/auth-test`, and `/api/test-resources`) are mounted in the main application. Remove or disable them before any public deployment.
+- The budget status boundary is implemented as `NEAR_LIMIT` at exactly 100% usage; `OVER_BUDGET` starts above 100%. This differs from an earlier design note in [Docs/Detailed Design.md](Docs/Detailed%20Design.md).
+- No screenshots are included because no verified current screenshots were available. No demo URL is included because no working deployment was verified.
 
----
+See [Docs/RELEASE_READINESS.md](Docs/RELEASE_READINESS.md) for the release checklist and verification status.
 
-## MVP
+## Documentation
 
-The initial version includes:
-
-- Authentication
-- Financial accounts
-- Transactions
-- Categories
-- Monthly budgeting
-- Financial dashboard
-- Reports
-- Search and filtering
-
-## Future Features
-
-
-## Authentication
-
-### Password Policy
-
-- Minimum length: 8 characters
-- No uppercase requirement
-- No lowercase requirement
-- No number requirement
-- No special character requirement
-- Maximum length: not defined yet
-- Passwords are stored only as secure hashes
-
-
-Possible future features include:
-
-- Recurring transactions
-- Financial goals
-- Notifications
-- Multiple currencies
-- Import/export
-- Bank integration
-- Shared accounts
-- Advanced analytics
-- AI-powered financial insights
-- Mobile/PWA application
-
----
+- [Architecture](Docs/Architecture.md)
+- [API guide](Docs/API.md)
+- [Docker development and testing](Docs/DEVELOPMENT.md)
+- [Release readiness checklist](Docs/RELEASE_READINESS.md)
+- [Original system architecture design](Docs/System%20Architecture.md)
+- [Original detailed design](Docs/Detailed%20Design.md)
 
 ## Project Status
 
-🚧 Early Development
-
-Requirements and features may evolve as the project develops.
+Development/portfolio project. The documented setup and quality-check commands were checked against the repository configuration. Lint, test, and build checks pass; the formatting scripts have known issues described above. A clean-environment startup was not executed during the documentation review. See the release checklist for which checks were executed and which remain unverified.

@@ -1,5 +1,7 @@
 # Detailed Design
 
+> **Implementation note:** This is the original design document. The current implementation and known differences are described in [Architecture.md](Architecture.md). In particular, the implemented budget status boundary is `NEAR_LIMIT` through exactly 100%, with `OVER_BUDGET` beginning above 100%.
+
 ## 1. Overview
 
 This document defines the detailed design of the Personal Finance Management System based on the approved system architecture, domain model, and OpenAPI specification.
