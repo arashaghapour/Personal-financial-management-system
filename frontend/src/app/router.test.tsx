@@ -59,6 +59,26 @@ vi.mock("../features/transactions/api/transactions.queries", () => ({
   deleteTransactionMutation: vi.fn(),
 }));
 
+vi.mock("../features/reports/api/reports.queries", () => ({
+  fetchSummaryReport: vi.fn().mockResolvedValue({
+    totalIncome: "0",
+    totalExpenses: "0",
+    netCashFlow: "0",
+    transactionCount: 0,
+    incomeTransactionCount: 0,
+    expenseTransactionCount: 0,
+  }),
+  fetchExpenseReport: vi.fn().mockResolvedValue({
+    totalExpenses: "0",
+    categories: [],
+  }),
+  fetchCashFlowReport: vi.fn().mockResolvedValue({
+    startDate: "",
+    endDate: "",
+    data: [],
+  }),
+}));
+
 function RoutesProbe() {
   return useRoutes(routes);
 }
@@ -129,6 +149,22 @@ describe("router configuration", () => {
 
     expect(
       await screen.findByRole("heading", { name: "Budgets", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the reports page at /reports", async () => {
+    renderRoutes("/reports", "authenticated");
+
+    expect(
+      await screen.findByRole("heading", { name: "Reports", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders a specific report at /reports/:reportType", async () => {
+    renderRoutes("/reports/cash-flow", "authenticated");
+
+    expect(
+      await screen.findByRole("heading", { name: "Cash Flow Report", level: 2 }),
     ).toBeInTheDocument();
   });
 

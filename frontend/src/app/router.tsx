@@ -11,6 +11,7 @@ import DashboardPage from '../pages/DashboardPage'
 import LoginPage from '../pages/LoginPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import RegisterPage from '../pages/RegisterPage'
+import ReportsPage from '../pages/ReportsPage'
 import TransactionsPage from '../pages/TransactionsPage'
 
 /**
@@ -23,6 +24,8 @@ import TransactionsPage from '../pages/TransactionsPage'
  * - /categories  category management page (protected route)
  * - /transactions transaction management page (protected route)
  * - /budgets     monthly budget management page (protected route)
+ * - /reports     financial reports page (protected route)
+ * - /reports/:reportType summary, expense, or cash flow report
  * - /login       authentication page (public only)
  * - /register    registration page (public only)
  * - *            not-found page for unmatched routes
@@ -71,6 +74,22 @@ export const routes: RouteObject[] = [
         element: (
           <ProtectedRoute>
             <BudgetsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'reports',
+        element: (
+          <ProtectedRoute>
+            <ReportsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'reports/:reportType',
+        element: (
+          <ProtectedRoute>
+            <ReportsPage />
           </ProtectedRoute>
         ),
       },
