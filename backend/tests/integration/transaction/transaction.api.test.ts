@@ -86,6 +86,44 @@ describe("Transaction API", () => {
       expect(account?.balance.toString()).toBe("1500");
     });
 
+    it("should trim surrounding whitespace from the description", async () => {
+      const accountResponse = await request(app)
+        .post("/api/accounts")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Main Bank",
+          type: "BANK",
+          initialBalance: 1000,
+        });
+
+      expect(accountResponse.status).toBe(201);
+
+      const categoryResponse = await request(app)
+        .post("/api/categories")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Salary",
+          type: "INCOME",
+        });
+
+      expect(categoryResponse.status).toBe(201);
+
+      const response = await request(app)
+        .post("/api/transactions")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          type: "INCOME",
+          accountId: accountResponse.body.id,
+          categoryId: categoryResponse.body.id,
+          amount: 500,
+          description: "  Monthly salary  ",
+          date: "2026-09-20",
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.description).toBe("Monthly salary");
+    });
+
     it("should create an EXPENSE transaction", async () => {
       const accountResponse = await request(app)
         .post("/api/accounts")

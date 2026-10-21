@@ -9,6 +9,10 @@ import { hashRefreshToken } from "../../../src/modules/auth/refresh-token.utils.
 
 const secret = new TextEncoder().encode(env.jwtAccessSecret);
 
+const refreshSecret = new TextEncoder().encode(
+  env.jwtRefreshSecret,
+);
+
 describe("POST /api/auth/login", () => {
   it("should login successfully with valid credentials", async () => {
     await request(app).post("/api/auth/register").send({
@@ -347,5 +351,14 @@ describe("POST /api/auth/login", () => {
     expect(refreshTokenRecord?.revokedAt).toBeNull();
     expect(refreshTokenRecord?.expiresAt).toBeInstanceOf(Date);
     expect(refreshTokenRecord?.expiresAt.getTime()).toBeGreaterThan(Date.now());
+
+    const refreshTokenPayload = await jwtVerify(
+      refreshToken,
+      refreshSecret,
+    );
+
+    expect(refreshTokenRecord?.expiresAt.getTime()).toBe(
+      refreshTokenPayload.payload.exp! * 1000,
+    );
   });
 });

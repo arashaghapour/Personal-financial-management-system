@@ -29,8 +29,8 @@ export const getCategoryErrorMessage = (error: unknown): string => {
 
 /**
  * Deletion-specific error message. The backend enforces the category ->
- * transaction restriction at the database level, which currently surfaces as
- * a 500 response. Transactions must never be modified to work around it.
+ * transaction restriction at the database level and reports it as a 409
+ * conflict. Transactions must never be modified to work around it.
  */
 export const getDeleteCategoryErrorMessage = (error: unknown): string => {
   if (

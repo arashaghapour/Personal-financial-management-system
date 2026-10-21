@@ -168,7 +168,7 @@ export const getTransactions = async (
     page: data.page,
     limit: data.limit,
   };
-  console.log("SERVICE PAGINATION:", pagination);
+
   const sort = data.sort;
 
   const [transactions, total] = await Promise.all([

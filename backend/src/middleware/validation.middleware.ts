@@ -28,6 +28,10 @@ export const validationMiddleware = (
 
     res.locals[source] = result.data;
 
+    if (source === "body") {
+      req.body = result.data;
+    }
+
     next();
   };
 };

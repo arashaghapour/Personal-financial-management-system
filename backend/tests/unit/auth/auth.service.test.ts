@@ -386,6 +386,44 @@ describe("auth.service", () => {
         "passwordHash",
       );
     });
+
+    it("should store the refresh token expiry from the token", async () => {
+      const expiresAt = new Date(
+        "2030-01-01T00:00:00.000Z",
+      );
+
+      findByEmail.mockResolvedValue(user);
+      verifyPassword.mockResolvedValue(true);
+      generateRefreshToken.mockResolvedValueOnce(
+        "refresh-token",
+      );
+      verifyRefreshToken.mockResolvedValueOnce({
+        payload: {
+          sub: String(user.id),
+          exp: expiresAt.getTime() / 1000,
+        },
+      });
+      hashRefreshToken.mockReturnValue(
+        "hashed-refresh-token",
+      );
+
+      createRefreshToken.mockResolvedValue({
+        id: 1,
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt,
+        createdAt: new Date(),
+        revokedAt: null,
+      });
+
+      await login(loginData);
+
+      expect(createRefreshToken).toHaveBeenCalledWith({
+        userId: user.id,
+        tokenHash: "hashed-refresh-token",
+        expiresAt,
+      });
+    });
   });
 
   describe("refresh", () => {
