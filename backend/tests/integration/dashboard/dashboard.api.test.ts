@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
+import { SignJWT } from "jose";
 
 import app from "../../../src/app.js";
+import { env } from "../../../src/config/env.js";
+
+const accessSecret = new TextEncoder().encode(
+  env.jwtAccessSecret,
+);
 
 describe("Dashboard API", () => {
   it("should return an empty dashboard for a new user", async () => {
@@ -1124,32 +1130,17 @@ describe("Dashboard API - Authentication", () => {
   });
 
   it("should return 401 when an expired access token is provided", async () => {
-    const email = "dashboard-expired-token@example.com";
-
-    await request(app)
-      .post("/api/auth/register")
-      .send({
-        email,
-        password: "Password123!",
-        firstName: "Dashboard",
-        lastName: "User",
-      })
-      .expect(201);
-
-    const loginResponse = await request(app)
-      .post("/api/auth/login")
-      .send({
-        email,
-        password: "Password123!",
-      })
-      .expect(200);
-
-    const accessToken = loginResponse.body.accessToken;
-
-    expect(accessToken).toBeDefined();
-
-    // Make the token invalid by modifying its payload/signature.
-    const expiredToken = `${accessToken.slice(0, -1)}x`;
+    // Sign a token for a valid subject but with an expiration in the past.
+    // Mutating the last character of a valid token is not reliable: base64url
+    // padding bits can decode to the same signature bytes.
+    const expiredToken = await new SignJWT({})
+      .setProtectedHeader({ alg: "HS256" })
+      .setSubject("1")
+      .setIssuedAt()
+      .setExpirationTime(
+        Math.floor(Date.now() / 1000) - 60,
+      )
+      .sign(accessSecret);
 
     await request(app)
       .get("/api/dashboard")
