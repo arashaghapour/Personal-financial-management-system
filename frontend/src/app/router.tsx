@@ -10,6 +10,7 @@ import DashboardPage from '../pages/DashboardPage'
 import LoginPage from '../pages/LoginPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import RegisterPage from '../pages/RegisterPage'
+import TransactionsPage from '../pages/TransactionsPage'
 
 /**
  * Centralized route configuration for the application.
@@ -19,6 +20,7 @@ import RegisterPage from '../pages/RegisterPage'
  * - /dashboard   initial dashboard placeholder (protected route)
  * - /accounts    account management page (protected route)
  * - /categories  category management page (protected route)
+ * - /transactions transaction management page (protected route)
  * - /login       authentication page (public only)
  * - /register    registration page (public only)
  * - *            not-found page for unmatched routes
@@ -51,6 +53,14 @@ export const routes: RouteObject[] = [
         element: (
           <ProtectedRoute>
             <CategoriesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'transactions',
+        element: (
+          <ProtectedRoute>
+            <TransactionsPage />
           </ProtectedRoute>
         ),
       },
