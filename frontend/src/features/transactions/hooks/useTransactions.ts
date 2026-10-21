@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { accountKeys } from "../../accounts/api/account.keys";
+import { budgetKeys } from "../../budgets/api/budget.keys";
 
 import {
   createTransactionMutation,
@@ -37,9 +38,9 @@ export const useTransactionQuery = (id: string) =>
   });
 
 /**
- * Transaction mutations change account balances on the backend, so both the
- * transaction caches and the account caches are invalidated. Using the shared
- * account key guarantees the dashboard and accounts page see fresh balances.
+ * Transaction mutations change account balances and budget spending on the
+ * backend. Invalidating all three roots keeps balances and progress fresh
+ * wherever they are displayed.
  */
 const invalidateTransactionData = async (
   queryClient: ReturnType<typeof useQueryClient>,
@@ -47,6 +48,7 @@ const invalidateTransactionData = async (
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
     queryClient.invalidateQueries({ queryKey: accountKeys.all }),
+    queryClient.invalidateQueries({ queryKey: budgetKeys.all }),
   ]);
 };
 
