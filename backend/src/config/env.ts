@@ -34,6 +34,11 @@ if (!refreshTokenExpiresIn) {
   throw new Error("REFRESH_TOKEN_EXPIRES_IN is not defined");
 }
 
+// Comma-separated list of browser origins allowed to call the API. When unset,
+// all origins are allowed (convenient for local development). Production
+// deployments should set this to the deployed frontend origin(s).
+const corsOrigin = process.env.CORS_ORIGIN?.trim() || undefined;
+
 export const env = {
   port,
   databaseUrl,
@@ -41,4 +46,5 @@ export const env = {
   accessTokenExpiresIn,
   jwtRefreshSecret,
   refreshTokenExpiresIn,
+  corsOrigin,
 };

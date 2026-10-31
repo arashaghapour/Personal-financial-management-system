@@ -56,7 +56,7 @@ flowchart LR
 - The **backend** owns authentication, authorization, validation, business rules, balance changes, budget calculations, and report aggregation.
 - **PostgreSQL** stores users, accounts, categories, transactions, budgets, and refresh-token records.
 
-The browser calls same-origin `/api`; the Vite dev server proxies that path to the backend container. The backend does not implement CORS, so production hosting would need a same-origin reverse proxy or an intentional CORS configuration.
+The browser calls same-origin `/api`; the Vite dev server proxies that path to the backend container. In production the frontend calls the deployed backend through `VITE_API_BASE_URL`, and the backend allows the configured frontend origin(s) through the `CORS_ORIGIN` environment variable.
 
 For implementation details, see [Docs/Architecture.md](Docs/Architecture.md).
 
@@ -170,7 +170,7 @@ The `format:check` scripts are not currently reliable: the backend checkout is n
 - During development the API is served at `http://localhost:3000/api`.
 - The source of truth is the backend implementation; see [Docs/API.md](Docs/API.md) for verified endpoint groups, authentication steps, and request examples.
 - To test protected endpoints, call `POST /api/auth/login`, then send `Authorization: Bearer <access-token>`.
-- The OpenAPI document uses `http://localhost:3000/api` as its server URL. Browsers may block "Try it out" requests from external documentation tools because the backend has no CORS middleware; use the provided `curl` examples or a same-origin proxy instead.
+- The OpenAPI document uses `http://localhost:3000/api` as its server URL. External documentation tools can call the API when their origin is allowed by `CORS_ORIGIN`; otherwise use the provided `curl` examples or a same-origin proxy.
 
 ## Security and Limitations
 
@@ -180,8 +180,8 @@ Known limitations for reviewers:
 
 - This is a development project, not a production-ready service. There is no public demo deployment.
 - The frontend stores access and refresh tokens in `localStorage`, which is vulnerable if the application ever suffers an XSS defect.
-- The backend has no CORS middleware, rate limiting, security-header middleware, email verification, or password-reset flow.
-- Docker images run the development servers (`tsx watch` and Vite), not production builds.
+- The backend has no rate limiting, security-header middleware, email verification, or password-reset flow. CORS defaults to allowing all origins when `CORS_ORIGIN` is unset, so production deployments should set it explicitly.
+- Docker Compose runs the development servers (`tsx watch` and Vite). The backend Dockerfile also provides a production image that compiles TypeScript and runs `npm start`.
 - Test-support routes (`/api/validation-test`, `/api/auth-test`, and `/api/test-resources`) are mounted in the main application. Remove or disable them before any public deployment.
 - The budget status boundary is implemented as `NEAR_LIMIT` at exactly 100% usage; `OVER_BUDGET` starts above 100%. This differs from an earlier design note in [Docs/Detailed Design.md](Docs/Detailed%20Design.md).
 - No screenshots are included because no verified current screenshots were available. No demo URL is included because no working deployment was verified.

@@ -4,4 +4,8 @@ npm-debug.log
 .gitignore
 tests
 coverage
+dist
 .env
+.env.*
+.claude
+.windsurf
